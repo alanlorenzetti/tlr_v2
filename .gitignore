@@ -1,0 +1,10 @@
+*.Rproj
+/plot
+/data
+addCommitPush.sh
+tlr_v2.Rproj
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+*.DS_Store
