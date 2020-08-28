@@ -1,5 +1,5 @@
 *.Rproj
-/plot
+/plots
 /data
 addCommitPush.sh
 tlr_v2.Rproj
@@ -8,4 +8,3 @@ tlr_v2.Rproj
 *.RData
 *.Ruserdata
 *.DS_Store
-.gitignore
