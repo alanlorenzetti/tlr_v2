@@ -1,8 +1,8 @@
-# alorenzetti 202007
+# alorenzetti 202008
 
 # this is a scaffold script
-# you can find the order of running
-# things here
+# here you can find the adequate
+# script order
 
 # loading libs
 source("scripts/loadingLibs.R")
