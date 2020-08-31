@@ -8,199 +8,116 @@
 # loading libs ####
 source("scripts/loadingLibs.R")
 
-# checking if tc file exists
-# (it has been run on another machine)
-if(file.exists("tc.RData")){
-  load("tc.RData")
-  load("mRNAclusters.RData")
-  load("protclusters.RData")
-  load("tlrclusters.RData")
-}else{
-  
-  # merging dataframes and adding suffix
-  # to identify timepoint
-  timecourse = full_join(alldfs$TP2, alldfs$TP3, by = "locus_tag", suffix = c("_TP2", "_TP3"))
-  
-  # copying tp4 df and adding tp4 suffix
-  tp4df = alldfs$TP4
-  colnames(tp4df) = paste0(colnames(tp4df), "_TP4")
-  colnames(tp4df)[1] = "locus_tag"
-  
-  # merging tp2-tp3 to tp4
-  timecourse = full_join(timecourse, tp4df, by = "locus_tag")
-  
-  # removing quadrant cols and sigProtOn
-  timecourse = timecourse %>%
-    dplyr::select(-contains("quad")) %>% 
-    dplyr::select(-contains("sig")) %>% 
-    dplyr::select(-starts_with("border"))
-    
-  # adding RO 
-  # beta and TLR cols
-  timecourse = timecourse %>% 
-    mutate(mRNA_TP32 = mRNA_TP2,
-           mRNA_TP43 = mRNA_TP3,
-           RPF_TP32 = RPF_TP2,
-           RPF_TP43 = RPF_TP3,
-           protein_TP32 = protein_TP3,
-           protein_TP43 = protein_TP4) %>% 
-    mutate(lfcse_mRNA_TP32 = lfcse_mRNA_TP2,
-           lfcse_mRNA_TP43 = lfcse_mRNA_TP3,
-           lfcse_RPF_TP32 = lfcse_RPF_TP2,
-           lfcse_RPF_TP43 = lfcse_RPF_TP3,
-           lfcse_protein_TP32 = lfcse_protein_TP3,
-           lfcse_protein_TP43 = lfcse_protein_TP4) %>% 
-#    mutate(mRNApRPF_TP32 = mRNA_TP2 + RPF_TP2,
-#           mRNApRPF_TP43 = mRNA_TP3 + RPF_TP3,
-#           mRNApRPF_TP2 = mRNA_TP2 + RPF_TP2,
-#           mRNApRPF_TP3 = mRNA_TP3 + RPF_TP3,
-#           mRNApRPF_TP4 = mRNA_TP4 + RPF_TP4) %>% 
-    mutate(RO_TP2 = RPF_TP2 - mRNA_TP2,
-           RO_TP3 = RPF_TP3 - mRNA_TP3,
-           RO_TP4 = RPF_TP4 - mRNA_TP4,
-           RO_TP32 = RPF_TP2 - mRNA_TP2,
-           RO_TP43 = RPF_TP3 - mRNA_TP3) %>% 
-    mutate(beta_TP2 = protein_TP2 - mRNA_TP2,
-           beta_TP3 = protein_TP3 - mRNA_TP3,
-           beta_TP4 = protein_TP4 - mRNA_TP4,
-           beta_TP32 = protein_TP3 - mRNA_TP2,
-           beta_TP43 = protein_TP4 - mRNA_TP3) %>% 
-    mutate(TLR_TP2 = beta_TP2 - RO_TP2,
-           TLR_TP3 = beta_TP3 - RO_TP3,
-           TLR_TP4 = beta_TP4 - RO_TP4,
-           TLR_TP32 = beta_TP32 - RO_TP2,
-           TLR_TP43 = beta_TP43 - RO_TP3)
-  
-  # adding square root of square sum of distances
-  timecourse = timecourse %>%
-    rowwise() %>% 
-    mutate(costFunc_ProtmRNA_Slide = sum((protein_TP3-mRNA_TP2)^2, (protein_TP4-mRNA_TP3)^2) %>% sqrt(),
-           costFunc_RPFmRNA_Slide = sum((RPF_TP2-mRNA_TP2)^2, (RPF_TP3-mRNA_TP3)^2) %>% sqrt(),
-           costFunc_ProtRPF_Slide = sum((protein_TP3-RPF_TP2)^2, (protein_TP4-RPF_TP3)^2) %>% sqrt(),
-           costFunc_ProtmRNA_RPFmRNA_Slide = (costFunc_ProtmRNA_Slide - costFunc_RPFmRNA_Slide)^2 %>% sqrt()) %>%
-    
-    mutate(costFunc_ProtmRNA_AllTP = sum((protein_TP2-mRNA_TP2)^2, (protein_TP3-mRNA_TP3)^2, (protein_TP4-mRNA_TP4)^2) %>% sqrt(),
-           costFunc_RPFmRNA_AllTP = sum((RPF_TP2-mRNA_TP2)^2, (RPF_TP3-mRNA_TP3)^2, (RPF_TP4-mRNA_TP4)^2) %>% sqrt(),
-           costFunc_ProtRPF_AllTP = sum((protein_TP2-RPF_TP2)^2, (protein_TP3-RPF_TP3)^2, (protein_TP4-RPF_TP4)^2) %>% sqrt(),
-           costFunc_ProtmRNA_RPFmRNA_AllTP = (costFunc_ProtmRNA_AllTP - costFunc_RPFmRNA_AllTP)^2 %>% sqrt()) %>% 
-    ungroup()
-         
-  # finding the 33% lowest values
-  PMAllTPthr = timecourse$costFunc_ProtmRNA_AllTP %>% quantile(probs = 0.33) %>% unname()
-  RMAllTPthr = timecourse$costFunc_RPFmRNA_AllTP %>% quantile(probs = 0.33) %>% unname()
-    
-  PMSlidethr = timecourse$costFunc_ProtmRNA_Slide %>% quantile(probs = 0.33) %>% unname()
-  RMSlidethr = timecourse$costFunc_RPFmRNA_Slide %>% quantile(probs = 0.33) %>% unname()
-  
-  # ignoring PMRM for PM or RM not passing the threshold
-  timecourse = timecourse %>% 
-    mutate(costFunc_ProtmRNA_RPFmRNA_AllTP = case_when(costFunc_ProtmRNA_AllTP > PMAllTPthr |
-                                                         costFunc_RPFmRNA_AllTP > RMAllTPthr ~ NA_real_,
-                                                       TRUE ~ as.numeric(costFunc_ProtmRNA_RPFmRNA_AllTP)),
-           costFunc_ProtmRNA_RPFmRNA_Slide = case_when(costFunc_ProtmRNA_Slide > PMSlidethr |
-                                                         costFunc_RPFmRNA_Slide > RMSlidethr ~ NA_real_,
-                                                       TRUE ~ as.numeric(costFunc_ProtmRNA_RPFmRNA_Slide)))
-  
-  # assigning the lowest 66% to categorical variable
-  PMRMAllTPthr = timecourse$costFunc_ProtmRNA_RPFmRNA_AllTP %>% quantile(probs=.33, na.rm = T)
-  PMRMSlidethr = timecourse$costFunc_ProtmRNA_RPFmRNA_Slide %>% quantile(probs=.33, na.rm = T)
-  
-  timecourse = timecourse %>% 
-    mutate(pmrmPassAllTP = case_when(is.na(costFunc_ProtmRNA_RPFmRNA_AllTP) ~ "no",
-                                     costFunc_ProtmRNA_RPFmRNA_AllTP > PMRMAllTPthr ~ "no",
-                                     TRUE ~ "yes"),
-           pmrmPassSlide = case_when(is.na(costFunc_ProtmRNA_RPFmRNA_Slide) ~ "no",
-                                     costFunc_ProtmRNA_RPFmRNA_Slide > PMRMSlidethr ~ "no",
-                                     TRUE ~ "yes"))
-  
-  # # timeseries clustering based on
-  # # tlr trajectory
-  # tctlr = timecourseClean %>% select(contains("TLR_"))
-  # set.seed(999)
-  # tlrclusters = list()
-  # for(i in 2:50){
-  #   idx=paste0("nbclust_",i)
-  #   tlrclusters[[idx]] = analyse_stability(tctlr,
-  #                                           nb_clusters = i,
-  #                                           nb_clustering_runs = 19,
-  #                                           nb_cores = 20
-  #   )
-  #   plot_silhouette(tlrclusters[[idx]])
-  # }
-  # 
-  # # saving tlrclusters object
-  # save(tlrclusters, file = "tlrclusters.RData")
-  # 
-  # # adding cluster col
-  # timecourseClean$tlrclust = paste0("Cluster", tlrclusters$nbclust_5$em_cluster_assignment)
-  
-  # # timeseries clustering based on
-  # # protein trajectory
-  # tcprot = timecourseClean %>% select(contains("TLR_"))
-  # set.seed(999)
-  # protclusters = list()
-  # for(i in 2:20){
-  #   idx=paste0("nbclust_",i)
-  #   protclusters[[idx]] = analyse_stability(tcprot,
-  #                                           nb_clusters = i,
-  #                                           nb_clustering_runs = 11,
-  #                                           nb_cores = 16
-  #   )
-  #   plot_silhouette(protclusters[[idx]])
-  # }
-  # 
-  # # adding cluster col
-  # timecourseClean$protclust = paste0("Cluster", protclusters$nbclust_8$em_cluster_assignment)
-  # 
-  # # timeseries clustering based on
-  # # mrna trajectory
-  # tcmRNA = timecourseClean %>% select(contains("mRNA"))
-  # set.seed(999)
-  # mRNAclusters = list()
-  # for(i in 2:20){
-  #   idx=paste0("nbclust_",i)
-  #   mRNAclusters[[idx]] = analyse_stability(tcmRNA,
-  #                                           nb_clusters = i,
-  #                                           nb_clustering_runs = 11,
-  #                                           nb_cores = 16
-  #   )
-  #   plot_silhouette(mRNAclusters[[idx]])
-  # }
-  # 
-  # # adding cluster col
-  # timecourseClean$mRNAclust = paste0("Cluster", mRNAclusters$nbclust_8$em_cluster_assignment)
-  
-  # pivoting dataframe
-  # and adding a T0 with lfc and lfcse = 0 
-  tc = timecourse %>%
-    dplyr::select(-starts_with("timePoint"),
-                  -starts_with("cost"),
-                  -starts_with("TLR_"),
-                  -starts_with("beta_"),
-                  -starts_with("RO_"),
-                  -starts_with("pmrm")) %>% 
-    mutate(protein_TP0 = 0, RPF_TP0 = 0, mRNA_TP0 = 0,
-           lfcse_protein_TP0 = 0, lfcse_RPF_TP0 = 0, lfcse_mRNA_TP0 = 0) %>% 
-    rename_at(vars(matches("^mRNA|^RPF|^protein")),
-              list(~sub("^","lfc_",.))) %>% 
-    pivot_longer(cols = contains("TP"),
-                 names_to = c("measure", "libType", "timepoint"),
-                 names_pattern = "^(.*)_(.*)_(.*)$",
-                 values_to = "lfc") %>% 
-    pivot_wider(names_from = measure,
-                values_from = lfc)
-  # tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein","RO","beta","TLR"))
-  tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein"))
-  
-  #saving tc object
-  save(tc, file="tc.RData")
-}
+# merging dataframes and adding suffix
+# to identify timepoint
+timecourse = full_join(alldfs$TP2, alldfs$TP3, by = "locus_tag", suffix = c("_TP2", "_TP3"))
 
-# plots
-# tlrclusters
-# ggplot(data = tc, aes(x=timepoint, y=lfc, group = locus_tag, colour = tlrclust)) +
-#   geom_line(show.legend = F, size = 0.25, alpha = 0.5) +
-#   facet_wrap(~tlrclust+libType)
+# copying tp4 df and adding tp4 suffix
+tp4df = alldfs$TP4
+colnames(tp4df) = paste0(colnames(tp4df), "_TP4")
+colnames(tp4df)[1] = "locus_tag"
+
+# merging tp2-tp3 to tp4
+timecourse = full_join(timecourse, tp4df, by = "locus_tag")
+
+# removing quadrant cols and sigProtOn
+timecourse = timecourse %>%
+  dplyr::select(-contains("quad")) %>% 
+  dplyr::select(-contains("sig")) %>% 
+  dplyr::select(-starts_with("border"))
+
+# adding RO 
+# beta and TLR cols
+timecourse = timecourse %>% 
+  mutate(mRNA_TP32 = mRNA_TP2,
+         mRNA_TP43 = mRNA_TP3,
+         RPF_TP32 = RPF_TP2,
+         RPF_TP43 = RPF_TP3,
+         protein_TP32 = protein_TP3,
+         protein_TP43 = protein_TP4) %>% 
+  mutate(lfcse_mRNA_TP32 = lfcse_mRNA_TP2,
+         lfcse_mRNA_TP43 = lfcse_mRNA_TP3,
+         lfcse_RPF_TP32 = lfcse_RPF_TP2,
+         lfcse_RPF_TP43 = lfcse_RPF_TP3) %>% 
+  mutate(RO_TP2 = RPF_TP2 - mRNA_TP2,
+         RO_TP3 = RPF_TP3 - mRNA_TP3,
+         RO_TP4 = RPF_TP4 - mRNA_TP4,
+         RO_TP32 = RPF_TP2 - mRNA_TP2,
+         RO_TP43 = RPF_TP3 - mRNA_TP3) %>% 
+  mutate(beta_TP2 = protein_TP2 - mRNA_TP2,
+         beta_TP3 = protein_TP3 - mRNA_TP3,
+         beta_TP4 = protein_TP4 - mRNA_TP4,
+         beta_TP32 = protein_TP3 - mRNA_TP2,
+         beta_TP43 = protein_TP4 - mRNA_TP3) %>% 
+  mutate(TLR_TP2 = beta_TP2 - RO_TP2,
+         TLR_TP3 = beta_TP3 - RO_TP3,
+         TLR_TP4 = beta_TP4 - RO_TP4,
+         TLR_TP32 = beta_TP32 - RO_TP2,
+         TLR_TP43 = beta_TP43 - RO_TP3)
+
+# adding square root of square sum of distances
+timecourse = timecourse %>%
+  rowwise() %>% 
+  mutate(costFunc_ProtmRNA_Slide = sum((protein_TP3-mRNA_TP2)^2, (protein_TP4-mRNA_TP3)^2) %>% sqrt(),
+         costFunc_RPFmRNA_Slide = sum((RPF_TP2-mRNA_TP2)^2, (RPF_TP3-mRNA_TP3)^2) %>% sqrt(),
+         costFunc_ProtRPF_Slide = sum((protein_TP3-RPF_TP2)^2, (protein_TP4-RPF_TP3)^2) %>% sqrt(),
+         costFunc_ProtmRNA_RPFmRNA_Slide = (costFunc_ProtmRNA_Slide - costFunc_RPFmRNA_Slide)^2 %>% sqrt()) %>%
+  
+  mutate(costFunc_ProtmRNA_AllTP = sum((protein_TP2-mRNA_TP2)^2, (protein_TP3-mRNA_TP3)^2, (protein_TP4-mRNA_TP4)^2) %>% sqrt(),
+         costFunc_RPFmRNA_AllTP = sum((RPF_TP2-mRNA_TP2)^2, (RPF_TP3-mRNA_TP3)^2, (RPF_TP4-mRNA_TP4)^2) %>% sqrt(),
+         costFunc_ProtRPF_AllTP = sum((protein_TP2-RPF_TP2)^2, (protein_TP3-RPF_TP3)^2, (protein_TP4-RPF_TP4)^2) %>% sqrt(),
+         costFunc_ProtmRNA_RPFmRNA_AllTP = (costFunc_ProtmRNA_AllTP - costFunc_RPFmRNA_AllTP)^2 %>% sqrt()) %>% 
+  ungroup()
+
+# finding the 33% lowest values
+PMAllTPthr = timecourse$costFunc_ProtmRNA_AllTP %>% quantile(probs = 0.33) %>% unname()
+RMAllTPthr = timecourse$costFunc_RPFmRNA_AllTP %>% quantile(probs = 0.33) %>% unname()
+
+PMSlidethr = timecourse$costFunc_ProtmRNA_Slide %>% quantile(probs = 0.33) %>% unname()
+RMSlidethr = timecourse$costFunc_RPFmRNA_Slide %>% quantile(probs = 0.33) %>% unname()
+
+# ignoring PMRM for PM or RM not passing the threshold
+timecourse = timecourse %>% 
+  mutate(costFunc_ProtmRNA_RPFmRNA_AllTP = case_when(costFunc_ProtmRNA_AllTP > PMAllTPthr |
+                                                       costFunc_RPFmRNA_AllTP > RMAllTPthr ~ NA_real_,
+                                                     TRUE ~ as.numeric(costFunc_ProtmRNA_RPFmRNA_AllTP)),
+         costFunc_ProtmRNA_RPFmRNA_Slide = case_when(costFunc_ProtmRNA_Slide > PMSlidethr |
+                                                       costFunc_RPFmRNA_Slide > RMSlidethr ~ NA_real_,
+                                                     TRUE ~ as.numeric(costFunc_ProtmRNA_RPFmRNA_Slide)))
+
+# assigning the lowest 66% to categorical variable
+PMRMAllTPthr = timecourse$costFunc_ProtmRNA_RPFmRNA_AllTP %>% quantile(probs=.33, na.rm = T)
+PMRMSlidethr = timecourse$costFunc_ProtmRNA_RPFmRNA_Slide %>% quantile(probs=.33, na.rm = T)
+
+timecourse = timecourse %>% 
+  mutate(pmrmPassAllTP = case_when(is.na(costFunc_ProtmRNA_RPFmRNA_AllTP) ~ "no",
+                                   costFunc_ProtmRNA_RPFmRNA_AllTP > PMRMAllTPthr ~ "no",
+                                   TRUE ~ "yes"),
+         pmrmPassSlide = case_when(is.na(costFunc_ProtmRNA_RPFmRNA_Slide) ~ "no",
+                                   costFunc_ProtmRNA_RPFmRNA_Slide > PMRMSlidethr ~ "no",
+                                   TRUE ~ "yes"))
+
+# pivoting dataframe
+# and adding a T0 with lfc and lfcse = 0 
+tc = timecourse %>%
+  dplyr::select(-starts_with("timePoint"),
+                -starts_with("cost"),
+                -starts_with("TLR_"),
+                -starts_with("beta_"),
+                -starts_with("RO_"),
+                -starts_with("pmrm")) %>% 
+  mutate(protein_TP0 = 0, RPF_TP0 = 0, mRNA_TP0 = 0,
+         lfcse_RPF_TP0 = 0, lfcse_mRNA_TP0 = 0) %>% 
+  rename_at(vars(matches("^mRNA|^RPF|^protein")),
+            list(~sub("^","lfc_",.))) %>% 
+  pivot_longer(cols = contains("TP"),
+               names_to = c("measure", "libType", "timepoint"),
+               names_pattern = "^(.*)_(.*)_(.*)$",
+               values_to = "lfc") %>% 
+  pivot_wider(names_from = measure,
+              values_from = lfc)
+# tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein","RO","beta","TLR"))
+tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein"))
 
 # scatters
 # alltp

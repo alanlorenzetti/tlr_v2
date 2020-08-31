@@ -72,6 +72,24 @@ oneomicsWide = oneomicsWide[!(oneomicsWide$locus_tag %in% remove),] %>%
   mutate(locus_tag = subject_id) %>% 
   select(-subject_id, -product.y)
   
+# for retrocompatibility reasons
+# I will recreated the object names tpivstp1
+# it is going to be similar
+# but not the same
+tpivstp1 = list()
+for(i in paste0("TP", 2:4)){
+  tpivstp1[[i]] = oneomicsWide %>% 
+    select(locus_tag,
+           matches(i)) %>% 
+    rename_with(.fn = ~ str_replace(string = .x, pattern = "_TP.*$", replacement = ""),
+                .cols = -locus_tag) %>% 
+    mutate(sigProt = case_when(abs(mean_lfc_protein_lysate) >= log2fcthreshold &
+                                 mean_padj_protein_lysate < pthr ~ "yes",
+                               TRUE ~ "no"),
+           borderLineZeroProt = case_when(abs(mean_lfc_protein_lysate) < borderlinezero ~ "yes",
+                                          TRUE ~ "no"))
+}
+
 # exploratory charts ####
 # plotting densities
 # oneomicsLong %>%

@@ -40,7 +40,8 @@ packs = c("BiocManager",
           "TMixClust",
           "viridis",
           "matrixStats",
-          "scales")
+          "scales",
+          "ggridges")
 
 # loading and installing missing packages
 p_load(char = packs)

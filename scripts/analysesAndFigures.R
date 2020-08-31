@@ -50,7 +50,8 @@ joinedTibble[["TP4_vs_TP4"]] %>%
 # cluster proteinDown mRNA Up in the context of total mRNA abundance
 joinedTibble[["TP4_vs_TP4"]] %>% 
   ggplot(aes(y = regRule, x = log10(totrnaBaseMean))) +
-  geom_density_ridges()
+  geom_violin() +
+  geom_jitter(alpha = 0.2)
 
 # lsm in context of HL
 abundLongFuncat %>% 
@@ -65,12 +66,14 @@ abundLongFuncat %>%
 # regRule in context of HL
 joinedTibble[["TP4_vs_TP4"]] %>% 
   ggplot(aes(y = regRule, x = HL)) +
-  geom_density_ridges()
+  geom_violin() +
+  geom_jitter(alpha = 0.2)
 
 # regRule in context of cai
 joinedTibble[["TP4_vs_TP4"]] %>% 
   ggplot(aes(y = regRule, x = cai)) +
-  geom_density_ridges()
+  geom_violin() +
+  geom_jitter(alpha = 0.2)
   
 # cluster proteinDown mRNA Up trajectory
 pDmUTP4 = joinedTibble[["TP4_vs_TP4"]] %>% 
@@ -98,7 +101,8 @@ joinedTibble[["TP4_vs_TP4"]] %>%
 # cluster mobilome in the context of total mRNA abundance
 joinedTibble[["TP4_vs_TP4"]] %>% 
   ggplot(aes(y = arCOG, x = log10(totrnaBaseMean))) +
-  geom_density_ridges()
+  geom_violin() +
+  geom_jitter(alpha = 0.2)
 
 # cluster mobilome in the context of asRNA
 joinedTibble[["TP4_vs_TP4"]] %>% 

@@ -32,18 +32,6 @@ for(i in names(regRules)){
   # setting higher and lower time point contrasts
   ihigh = sub("^(.*)_vs_.*$","\\1",i)
   ilow = sub("^.*_vs_(.*$)","\\1",i)
-  
-  # defining whether pmrm will be computed
-  # using time points or time point slides
-  # if(ihigh != ilow){
-  #   pmrm = timecourse %>%
-  #     dplyr::select(locus_tag, pmrmPassSlide) %>% 
-  #     rename(pmrm = pmrmPassSlide)
-  # }else{
-  #   pmrm = timecourse %>%
-  #     dplyr::select(locus_tag, pmrmPassAllTP)%>% 
-  #     rename(pmrm = pmrmPassAllTP)
-  # }
 
   # creating and wrangling a dataframe based on the regRules dataset
   joinedTibble[[i]] = regRules[[i]][["Prot_mRNA"]] %>%
@@ -61,15 +49,16 @@ for(i in names(regRules)){
                                TRUE ~ as.character(utrSize)),
            asRNA = case_when(is.na(asRNA) ~ "no",
                              TRUE ~ as.character(asRNA))
-           ) %>% 
-    left_join(., pmrm, by = "locus_tag")
+           )
   
   # creating the matrix of foldchanges
   M[[i]] = joinedTibble[[i]] %>%
     dplyr::select(matches("protein.*high") |
                     matches("mRNA.*low") |
                     matches("RPF.*low")) %>% 
-    dplyr::select(-contains("_"), -contains("-")) %>% 
+    dplyr::select(-matches("quad"),
+                  -matches("sig"),
+                  -matches("lfcse")) %>% 
     as.matrix()
   
   rownames(M[[i]]) = paste0(joinedTibble[[i]]$locus_tag, "|", joinedTibble[[i]]$pfeiProduct) %>%
@@ -80,7 +69,7 @@ for(i in names(regRules)){
                        paste0("RPF"," ", ilow))
   
   # creating the matrix of baseMean
-  baseMean = tibble(locus_tag = sub("\\|.*$", "", unifiedFin$TP4$id),
+  baseMean = tibble(locus_tag = sub("\\|.*$", "", unifiedFin$TP4$locus_tag),
                     totrnaBaseMean = unifiedFin$TP4$baseMean.x,
                     ribornaBaseMean = unifiedFin$TP4$baseMean.y)
   
@@ -107,29 +96,32 @@ for(i in names(regRules)){
   #narcogs = joinedTibble[[i]]$arCOG %>% unique() %>% length(.)
   #arCOGcols = circlize::rand_color(n=narcogs, luminosity="bright")
   # setting up manually
-  # 21 manual colors; one for each arCOG term
+  # 21 manual colors;
+  # mostly extracted from
+  # ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10` and
+  # ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`
   arCOGcols = c(
-    "Amino acid transport and metabolism" = "dodgerblue2",
-    "Carbohydrate transport and metabolism" = "#E31A1C", # red
-    "Cell cycle control, cell division, chromosome partitioning" = "green4",
-    "Cell motility" = "#6A3D9A", # purple
-    "Cell wall/membrane/envelope biogenesis" = "#FF7F00", # orange
-    "Coenzyme transport and metabolism" = "#76B7B2", # light teal
-    "Defense mechanisms" = "gold1",
-    "Energy production and conversion" = "skyblue2",
-    "General function prediction only" = "#FB9A99", # lt pink
-    "Inorganic ion transport and metabolism" = "palegreen2",
-    "Function unknown" = "gray70",
-    "Intracellular trafficking, secretion, and vesicular transport" = "khaki2",
-    "Lipid transport and metabolism" = "maroon",
-    "Mobilome: prophages, transposons" = "orchid1",
-    "Nucleotide transport and metabolism" = "deeppink1",
-    "Posttranslational modification, protein turnover, chaperones" = "blue1",
-    "Replication, recombination and repair" = "steelblue4",
-    "Secondary metabolites biosynthesis, transport and catabolism" = "darkturquoise",
-    "Signal transduction mechanisms" = "green1",
-    "Transcription" = "yellow4",
-    "Translation, ribosomal structure and biogenesis" = "#9C755F" # brown
+    "Amino acid transport and metabolism" = "#4E79A7", # blue
+    "Carbohydrate transport and metabolism" = "#A0CBE8", # light blue
+    "Cell cycle control, cell division, chromosome partitioning" = "#F28E2B", # orange
+    "Cell motility" = "#FFBE7D", # light orange
+    "Cell wall/membrane/envelope biogenesis" = "#59A14F", # green
+    "Coenzyme transport and metabolism" = "#8CD17D", # light green
+    "Defense mechanisms" = "#B6992D", # yellow green
+    "Energy production and conversion" = "#F1CE63", # yellow
+    "General function prediction only" = "grey70", 
+    "Inorganic ion transport and metabolism" = "#86BCB6", # light teal
+    "Function unknown" = "#79706E", # dark grey
+    "Intracellular trafficking, secretion, and vesicular transport" = "#E15759", # red
+    "Lipid transport and metabolism" = "#FF9D9A", # pink
+    "Mobilome: prophages, transposons" = "#D37295", # pink
+    "Nucleotide transport and metabolism" = "orchid1", # orchid1
+    "Posttranslational modification, protein turnover, chaperones" = "darkturquoise", # darkturquoise
+    "Replication, recombination and repair" = "skyblue2", # skyblue2
+    "Secondary metabolites biosynthesis, transport and catabolism" = "#9D7660", # brown
+    "Signal transduction mechanisms" = "#D7B5A6", # light orange
+    "Transcription" = "#499894", # teal
+    "Translation, ribosomal structure and biogenesis" = "maroon" # maroon
   )
   
   # getting classes included in arCOG
@@ -153,7 +145,7 @@ for(i in names(regRules)){
     pmrmColFun = c("no" = "white",
                    "yes" = "#59A14F"),
     arCOGCol = arCOGcols,
-    utrSizeCol = c("Unknown" = "grey80",
+    utrSizeCol = c("Unknown" = "grey70",
                    "leaderless" = "#4E79A7",
                    "short" = "#EDC948",
                    "mid" = "#F28E2B",
@@ -263,12 +255,12 @@ for(i in names(regRules)){
                             show_row_names = T,
                             column_order = colnames(M[[i]]),
                             left_annotation = row_ha[[i]],
-#                           row_split = factor(joinedTibble[[i]]$regRule,
-#                                              levels=joinedTibble[[i]]$regRule %>% unique()),
-#                                               row_split = factor(joinedTibble[[i]]$utrSize),
-#                                               row_split = factor(joinedTibble[[i]]$lsmSense),
-                                               row_split = factor(joinedTibble[[i]]$arCOG),
-#                                               row_split = factor(joinedTibble[[i]]$asRNA),
+                            row_split = factor(joinedTibble[[i]]$regRule,
+                                               levels=joinedTibble[[i]]$regRule %>% unique()),
+#                                              row_split = factor(joinedTibble[[i]]$utrSize),
+#                                              row_split = factor(joinedTibble[[i]]$lsmSense),
+#                                              row_split = factor(joinedTibble[[i]]$arCOG),
+#                                              row_split = factor(joinedTibble[[i]]$asRNA),
                             cluster_row_slices = FALSE,
                             row_title = NULL,
                             border = T,

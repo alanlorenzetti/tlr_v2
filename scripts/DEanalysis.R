@@ -178,8 +178,8 @@ for(type in c("totrna", "ribo")){
 resultsFin = list()
 for(type in c("totrna", "ribo")){
   for(i in 2:4 %>% as.character()){
-    varName = paste0("sig",type,"OnTP",i)
-    varName2 = paste0("borderlineZero",type,"OnTP",i)
+    varName = paste0("sig",type,"_TP",i)
+    varName2 = paste0("borderlineZero",type,"_TP",i)
     resultsFin[[paste0(type,i)]] = results[[paste0(type,i)]] %>% 
       mutate(!!varName := case_when(abs(log2FoldChange) >= log2fcthreshold & padj < padjthreshold ~ "yes",
                                     TRUE ~ "no")) %>% 
@@ -195,6 +195,17 @@ for(i in 2:4 %>% as.character()){
                                             resultsFin[[paste0("ribo",i)]],
                                             by = "target_id") %>% 
     rename("id" = target_id) %>% 
-    mutate(locus_tag = sub("\\|.*$", "", id))
+    mutate(locus_tag = sub("\\|.*$", "", id)) %>% 
+    select(locus_tag,
+           everything(),
+           -id) %>% 
+    rename_with(.fn = ~ str_replace(string = .x,
+                                 pattern = "_TP.*$",
+                                 replacement = ""),
+                .cols = matches("TP")) %>% 
+    rename("mean_lfc_rna_total" = log2FoldChange.x,
+           "se_lfc_rna_total" = lfcSE.x,
+           "mean_lfc_rna_ribo" = log2FoldChange.y,
+           "se_lfc_rna_ribo" = lfcSE.y)
 }
 

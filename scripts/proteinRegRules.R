@@ -19,20 +19,20 @@ findNumbersReg = function(df, timepointContrast){
   # merging dfs to be compared
   dfhigh = df[[ihigh]] %>% rename_at(vars(contains("TP")), list(~sub("TP.$","",.)))
   dflow = df[[ilow]] %>% rename_at(vars(contains("TP")), list(~sub("TP.$","",.)))
-  combdf = left_join(dfhigh, dflow, by = "locus_tag", suffix = c(paste0(ihigh, "high"),
-                                                                 paste0(ilow, "low")))
+  combdf = left_join(dfhigh, dflow, by = "locus_tag", suffix = c(paste0("_", ihigh, "_high"),
+                                                                 paste0("_", ilow, "_low")))
   # setting up varnames according to desired contrasts
-  vartotrna = paste0("mRNA", c(ihigh,ilow), c("high","low"))
-  varribo = paste0("RPF", c(ihigh,ilow), c("high","low"))
-  varprot = paste0("protein", c(ihigh,ilow), c("high","low"))
+  vartotrna = paste0("mRNA_", c(ihigh,ilow), "_", c("high","low"))
+  varribo = paste0("RPF_", c(ihigh,ilow), "_", c("high","low"))
+  varprot = paste0("protein_", c(ihigh,ilow), "_", c("high","low"))
   
-  varsigtotrna = paste0("sigtotrnaOn", c(ihigh,ilow), c("high","low"))
-  varsigribo = paste0("sigriboOn", c(ihigh,ilow), c("high","low"))
-  varsigprot = paste0("sigProtOn", c(ihigh,ilow), c("high","low"))
+  varsigtotrna = paste0("sigtotrna_", c(ihigh,ilow), "_", c("high","low"))
+  varsigribo = paste0("sigribo_", c(ihigh,ilow), "_", c("high","low"))
+  varsigprot = paste0("sigProt_", c(ihigh,ilow), "_", c("high","low"))
   
-  varborderlinetotrna = paste0("borderlineZerototrnaOn", c(ihigh,ilow), c("high","low"))
-  varborderlineribo = paste0("borderlineZeroriboOn", c(ihigh,ilow), c("high","low"))
-  varborderlineprot = paste0("borderlineZeroProtOn", c(ihigh,ilow), c("high","low"))
+  varborderlinetotrna = paste0("borderlineZerototrna_", c(ihigh,ilow), "_", c("high","low"))
+  varborderlineribo = paste0("borderlineZeroribo_", c(ihigh,ilow), "_", c("high","low"))
+  varborderlineprot = paste0("borderlineZeroProt_", c(ihigh,ilow), "_", c("high","low"))
   
   ### using only PROTEIN and mRNA
   ## within the set of UPREGULATED PROTEINS

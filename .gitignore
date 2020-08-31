@@ -8,3 +8,4 @@ tlr_v2.Rproj
 *.RData
 *.Ruserdata
 *.DS_Store
+.Rproj.user

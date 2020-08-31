@@ -39,35 +39,25 @@ theme_set(theme_bw())
 alldfs = list()
 quantileNorm = list()
 for(i in 2:4 %>% as.character()){
-  varName[1] = paste0("sigProtOnTP",i)
-  varName[2] = paste0("borderlineZeroProtOnTP",i)
-  varName[3] = paste0("sigtotrnaOnTP",i)
-  varName[4] = paste0("sigriboOnTP",i)
-  varName[5] = paste0("borderlineZerototrnaOnTP",i)
-  varName[6] = paste0("borderlineZeroriboOnTP",i)
+  varName[1] = paste0("sigProt")
+  varName[2] = paste0("borderlineZeroProt")
+  varName[3] = paste0("sigtotrna")
+  varName[4] = paste0("sigribo")
+  varName[5] = paste0("borderlineZerototrna")
+  varName[6] = paste0("borderlineZeroribo")
   
   alldfs[[paste0("TP",i)]] = inner_join(tpivstp1[[paste0("TP",i)]],
                                         unifiedFin[[paste0("TP",i)]],
                                         by = c("locus_tag" = "locus_tag")) %>% 
     select(locus_tag,
-           log2FoldChange.x,
-           lfcSE.x,
-           log2FoldChange.y,
-           lfcSE.y,
-           lfc,
-           lfcse,
-           !!varName[1],
-           !!varName[2],
-           !!varName[3],
-           !!varName[4],
-           !!varName[5],
-           !!varName[6]) %>%
-    rename("mRNA" = log2FoldChange.x,
-           "RPF" = log2FoldChange.y,
-           "protein" = lfc,
-           "lfcse_mRNA" = lfcSE.x,
-           "lfcse_RPF" = lfcSE.y,
-           "lfcse_protein" = lfcse)
+           matches("lfc"),
+           matches("sig"),
+           matches("border")) %>%
+    rename("mRNA" = mean_lfc_rna_total,
+           "RPF" = mean_lfc_rna_ribo,
+           "protein" = mean_lfc_protein_lysate,
+           "lfcse_mRNA" = se_lfc_rna_total,
+           "lfcse_RPF" = se_lfc_rna_ribo)
     
   # I will apply quantile normalization to mRNA, RPF and protein
   # and then I will replace the original values by the normalized ones
@@ -85,8 +75,8 @@ for(i in 2:4 %>% as.character()){
   # finding significant and borderline status again
   # after quantile normalization
   for(type in c("totrna", "ribo", "Prot")){
-    var1 = paste0("sig",type,"OnTP",i)
-    var2 = paste0("borderlineZero",type,"OnTP",i)
+    var1 = paste0("sig",type)
+    var2 = paste0("borderlineZero",type)
     
     if(type == "totrna"){var3 = "mRNA"}
     if(type == "ribo"){var3 = "RPF"}
@@ -162,77 +152,6 @@ for(i in 2:4 %>% as.character()){
     mutate(timePoint = i %>% as.numeric())
 }
 
-# converting to foldchanges to rank
-# but using the same colors
-alldfsRank = list()
-for(i in names(alldfs)){
-  alldfsRank[[i]] = alldfs[[i]] %>% 
-    mutate(mRNA = rank(mRNA),
-           protein = rank(protein),
-           RPF = rank(RPF))
-}
-
-# computing and plotting correlation for
-# highest and lowest ranks
-corPlot = function(df, type){
-  if(type == "RPF-mRNA"){
-    y = "RPF"; x = "mRNA"; form = paste0(y,"~",x) ; quad = paste0(type,"-quad")}
-  if(type == "protein-mRNA"){
-    y = "protein"; x = "mRNA"; form = paste0(y,"~",x); quad = paste0(type,"-quad")}
-  if(type == "protein-RPF"){
-    y = "protein"; x = "RPF"; form = paste0(y,"~",x); quad = paste0(type,"-quad")}
-  
-  cortop = tibble()
-  
-  dfhead = df %>%
-    filter(get(quad) == "Q1") %>% 
-    arrange(desc(get(y)))
-  
-  for(i in 1:dim(dfhead)[1]){
-    cortop[i,"idx"] = i
-    cortop[i,"value"] = cor(y=dfhead[1:i,y], x=dfhead[1:i,x], method = "pearson") %>% as.numeric()
-    cortop[i,"pos"] = "up"
-  }
-  
-  corbottom = tibble()
-  
-  dfhead = df %>%
-    filter(get(quad) == "Q3") %>% 
-    arrange(get(y))
-  
-  for(i in 1:dim(dfhead)[1]){
-    corbottom[i,"idx"] = i
-    corbottom[i,"value"] = cor(y=dfhead[1:i,y], x=dfhead[1:i,x], method = "pearson") %>% as.numeric()
-    corbottom[i,"pos"] = "down"
-  }
-  
-  cordf = bind_rows(corbottom,cortop) %>% drop_na()
-  
-  plot = ggplot(cordf, aes(x=idx,y=value,colour=pos)) +
-                  geom_line(show.legend = F) +
-    scale_color_manual(values = c("up"="#E15759", "down"="#4E79A7")) +
-    ylim(c(-1,1))
-  
-  return(plot)
-}
-
-# plotting rank correlation trends
-types = c("RPF-mRNA", "protein-mRNA", "protein-RPF")
-rankCorPlots = list()
-for(i in names(alldfsRank)){
-  for(k in types){
-    rankCorPlots[[i]][[k]] = corPlot(alldfs[[i]], k)}
-}
-ggarrange(plotlist=c(rankCorPlots$TP4), nrow = 1, ncol = 3)
-
-# including only those genes that have significant protein
-# change in at least one timepoint
-alldfsProtSigAtLeastOneTP = list()
-for(i in names(alldfs)){
-  filt = alldfs[[i]][,"locus_tag"] %>% unlist() %>% unname() %in% sigAtLeastOneTP
-  alldfsProtSigAtLeastOneTP[[i]] = alldfs[[i]][filt,]
-}
-
 # functions to find axes lims
 findXLims = function(df){
   mrnamax = df[,"mRNA"] %>% abs() %>% max() %>% RoundTo(x = ., multiple = 2, FUN = ceiling)
@@ -249,13 +168,6 @@ findYLims = function(df){
   ymin = -ymax
   Ylims = c(ymin,ymax)
   return(Ylims)
-}
-
-# preparing alldfs object
-fulldf = list()
-for(i in names(alldfs)){
-  fulldf[[i]] = alldfs[[i]] %>% rename_at(vars(starts_with("sigProt")),
-                                          list(~sub("TP[1-4]$", "", .)))
 }
 
 # getting models to explain relationship
@@ -280,7 +192,7 @@ for(i in names(alldfs)){
   }
 }
 
-# plotting general tendencies
+# plotting general trends
 plotGeneral = function(df, type, xLim, yLim){
   if(type == "RPF-mRNA"){
     y = "RPF"; x = "mRNA"; form = paste0(y,"~",x)}
@@ -306,14 +218,14 @@ plotGeneral = function(df, type, xLim, yLim){
   sz = 2
   
   plot = ggplot(data = df) +
-    geom_point2(aes(x=get(x), y=get(y)), alpha = alp, size = sz) +
+    geom_point(aes(x=get(x), y=get(y)), alpha = alp) +
     xlim(xLim) + ylim(yLim) + xlab(x) + ylab(y) +
 #    geom_vline(xintercept = 0, size = 0.3) +
 #    geom_hline(yintercept = 0, size = 0.3) +
-    geom_point2(inherit.aes = F,
+    geom_point(inherit.aes = F,
                 data = df,
                 aes(x=get(x), y=get(y)),
-                alpha = alp, size = sz,
+                alpha = alp,
                 show.legend = F) +
     geom_smooth(inherit.aes = F,
                 data = df,
@@ -343,50 +255,8 @@ ggarrange(plotlist = c(genplots$TP2,
                        genplots$TP4),
           nrow = 3, ncol = 3)
 
-# # plotting general tendencies animation
-# fulldf = bind_rows(fulldf)
-# 
-# # computing lims
-# xLim = findXLims(fulldf)
-# yLim = findYLims(fulldf)
-# 
-# # animate general tendencies
-# plotGeneralAnimate = function(fulldf, type, xLim, yLim){
-#   if(type == "RPF-mRNA"){
-#     y = "RPF"; x = "mRNA"}
-#   if(type == "protein-mRNA"){
-#     y = "protein"; x = "mRNA"}
-#   if(type == "protein-RPF"){
-#     y = "protein"; x = "RPF"}
-#   
-#   plot = ggplot(data = fulldf, aes_string(x=x, y=y, color="sigProtOn", group="locus_tag")) +
-#     geom_point(alpha = 0.25, show.legend = F) +
-#     geom_smooth(inherit.aes = F,
-#                 data = fulldf,
-#                 mapping=aes_string(x=x, y=y),
-#                 formula = y ~ x,
-#                 method = "lm",
-#                 color = "black") +
-#     scale_colour_manual(values = c("yes"="red", "no"="grey")) +
-#     xlim(xLim) + ylim(yLim)
-#     labs(title = "Time Point {closest_state} vs. Time Point 1") +
-#     transition_states(timePoint, wrap = T)
-#   return(plot)
-# }
-# 
-# # types of plot we should get
-# types = c("RPF-mRNA", "protein-mRNA", "protein-RPF")
-# 
-# # plots
-# generalIntPlots = list()
-# for(i in types){
-#   generalIntPlots[[i]] = plotGeneralAnimate(fulldf, i, xLim, yLim)
-#   anim_save(animation = generalIntPlots[[i]],
-#             filename = paste0("generaIntPlot_",i,".gif"))
-# }
-
 # plot functions with sig dataset
-plotLM = function(df, type, xLim, yLim, rankTransformation){
+plotLM = function(df, type, xLim, yLim){
   if(type == "RPF-mRNA"){
     y = "RPF"; x = "mRNA"; form = paste0(y,"~",x); color = paste0(type, "-quad"); alpha = paste0(y,"_",x,"_","sig")}
   if(type == "protein-mRNA"){
@@ -394,10 +264,10 @@ plotLM = function(df, type, xLim, yLim, rankTransformation){
   if(type == "protein-RPF"){
     y = "protein"; x = "RPF"; form = paste0(y,"~",x); color = paste0(type, "-quad"); alpha = paste0(y,"_",x,"_","sig")}
 
-  if(y == "RPF"){var1 = "sigriboOn"}
-  if(y == "protein"){var1 = "sigProtOn"}
-  if(x == "mRNA"){var2 = "sigtotrnaOn"}
-  if(x == "RPF"){var2 = "sigriboOn"}
+  if(y == "RPF"){var1 = "sigribo"}
+  if(y == "protein"){var1 = "sigProt"}
+  if(x == "mRNA"){var2 = "sigtotrna"}
+  if(x == "RPF"){var2 = "sigribo"}
   
   varName1 = df %>%
     select(starts_with(var1)) %>% names() %>% as.symbol()
@@ -415,7 +285,8 @@ plotLM = function(df, type, xLim, yLim, rankTransformation){
   p = list() ; pvaltext = list()
   grob = list() ; grobY = 0.92
   
-  quadsIt = dfSig %>% select(!!var) %>% distinct() %>% unlist() %>% unname()
+  quadsItSummy = dfSig %>% select(!!var) %>% table()
+  quadsIt = names(quadsItSummy[quadsItSummy > 1])
   quadsIt = quadsIt[quadsIt %in% paste0("Q", c(1,3))]
   
   for(i in quadsIt){
@@ -438,11 +309,11 @@ plotLM = function(df, type, xLim, yLim, rankTransformation){
   }
   
   plot = ggplot(data = df, aes(x=get(x), y=get(y), colour=get(color))) +
-    geom_point2(aes(alpha=get(alpha)), size = sz, show.legend = F) +
+    geom_point(aes(alpha=get(alpha)), size = sz, show.legend = F) +
     xlim(xLim) + ylim(yLim) + xlab(x) + ylab(y) +
     # geom_vline(xintercept = 0, size = 0.3) +
     # geom_hline(yintercept = 0, size = 0.3) +
-    # geom_point2(inherit.aes = F,
+    # geom_point(inherit.aes = F,
     #             data = dfSig,
     #             aes(x=get(x), y=get(y), color=get(color)),
     #             alpha = alp, size = sz,
@@ -464,36 +335,7 @@ plotLM = function(df, type, xLim, yLim, rankTransformation){
       annotation_custom(grob = grob[[i]])
   }
   
-  varx = paste0(x,"Rank")
-  df = df %>% arrange(get(x))
-  dims = df %>% dim()
-  neg = df[,x] < 0 ; neg = neg %>% sum() ; neg = (-neg+1):-1
-  pos = 1:((neg %>% length() + 1):dims[1] %>% length())
-  vec = c(neg,pos)
-  df = df %>% mutate(!!varx := vec)
-  minvarx = vec %>% min(); maxvarx = vec %>% max()
-
-  vary = paste0(y,"Rank")
-  df = df %>% arrange(get(y))
-  dims = df %>% dim()
-  neg = df[,y] < 0 ; neg = neg %>% sum() ; neg = (-neg+1):-1
-  pos = 1:((neg %>% length() + 1):dims[1] %>% length())
-  vec = c(neg,pos)
-  df = df %>% mutate(!!vary := vec)
-  minvary = vec %>% min(); maxvary = vec %>% max()
-  
-  rankplot = ggplot(data = df, aes(x=get(varx), y=get(vary), colour=get(color))) +
-    geom_point2(aes(alpha=get(alpha)), size = sz, show.legend = F) +
-    xlab(x) + ylab(y) + xlim(minvarx,maxvarx) + ylim(minvary,maxvary) +
-    scale_colour_manual(values = tab10col) +
-    scale_fill_manual(values = tab10col) +
-    scale_alpha_manual(values = c("bold"=0.8, "mid"= 0.3, "faint"=0.1))
-  
-  if(rankTransformation == "yes"){
-    return(rankplot)
-  }else{
-    return(plot)
-  }
+  return(plot)
 }
 
 # types of plot we should get
@@ -505,37 +347,9 @@ for(i in names(alldfs)){
   xLim = findXLims(alldfs[[i]])
   yLim = findYLims(alldfs[[i]])
   for(k in types){
-    lmplots[[i]][[k]] = plotLM(alldfs[[i]], k, xLim, yLim, "no")
+    lmplots[[i]][[k]] = plotLM(alldfs[[i]], k, xLim, yLim)
   }
 }
-
-# arranging plots (per time point)
-p = list()
-for(i in names(alldfsProtSigAtLeastOneTP)){
-  p[[i]] = ggarrange(plotlist = c(lmplots[[i]]),
-                nrow = 1, ncol = 3)
-}
-
-######## rankplots for full dataset
-rankPlots = list()
-for(i in names(alldfs)){
-  xLim = findXLims(alldfs[[i]])
-  yLim = findYLims(alldfs[[i]])
-  for(k in types){
-    rankPlots[[i]][[k]] = plotLM(alldfs[[i]], k, xLim, yLim, "yes")}
-}
-ggarrange(plotlist = c(rankPlots$TP4), nrow = 1, ncol = 3)
-
-# arranging plots (per time point)
-p = list()
-for(i in names(alldfsProtSigAtLeastOneTP)){
-  p[[i]] = ggarrange(plotlist = c(rankPlots[[i]]),
-                     nrow = 1, ncol = 3)
-}
-
-# arranging plots in a panel
-# ggarrange(plotlist = list(pmrnarpf$TP2, pmrna$TP2,prpf$TP2), ncol = 3, nrow = 1, labels = "TP2 vs TP1", legend = "none")
-# ggarrange(plotlist = list(pmrnarpf$TP3,pmrna$TP3,prpf$TP3), ncol = 3, nrow = 1, labels = "TP3 vs TP1", legend = "none")
 
 # arranging plots (full panel)
 ggarrange(plotlist = c(lmplots$TP2,
@@ -543,5 +357,4 @@ ggarrange(plotlist = c(lmplots$TP2,
                        lmplots$TP4),
           nrow = 3, ncol = 3)
 
-# saving last object
-#save(alldfsProtSigAtLeastOneTP, file = "alldfsProtSigAtLeastOneTP.RData")
+# getting 

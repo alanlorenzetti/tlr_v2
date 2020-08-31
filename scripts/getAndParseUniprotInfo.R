@@ -9,6 +9,13 @@
 source("scripts/loadingLibs.R")
 
 # processing starts ####
+################# WARNING ##################
+# somehow eggnog data for halo has disappeared
+# from Uniprot; We will have to use the previsously
+# downloaded version instead of downloading it again
+# other than having the file read to use, this will need 
+# a MAJOR fix
+############################################
 # getting Uniprot info
 # uniprot is not letting us get all the queried terms
 # we have to split the queries by up to 99 each time
