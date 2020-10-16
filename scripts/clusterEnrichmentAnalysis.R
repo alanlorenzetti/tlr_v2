@@ -116,7 +116,8 @@ for(i in names(joinedTibble)){
 }
 
 # correcting pvalues using BH method
+# filtering by pval
 for(i in names(enrich)){
   enrich[[i]]$qval = p.adjust(enrich[[i]]$pval)
-  enrich[[i]] = enrich[[i]][enrich[[i]]$qval < qthr,]
+  enrich[[i]] = enrich[[i]][enrich[[i]]$pval < qthr,]
 }

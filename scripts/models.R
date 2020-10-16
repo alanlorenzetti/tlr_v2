@@ -63,6 +63,7 @@ for(i in 2:4 %>% as.character()){
   # and then I will replace the original values by the normalized ones
   # the normalized values correlate quite well with the original ones
   # so I don't see a reason to be concerned about adjusting significance
+  # normalizing lfc values
   quantileNorm[[paste0("TP",i)]] = alldfs[[paste0("TP",i)]] %>%
     select(mRNA, RPF, protein) %>%
     as.matrix() %>% 
@@ -71,6 +72,16 @@ for(i in 2:4 %>% as.character()){
   colnames(quantileNorm[[paste0("TP",i)]]) = c("mRNA", "RPF", "protein")
   
   alldfs[[paste0("TP",i)]][,c("mRNA","RPF","protein")] = quantileNorm[[paste0("TP",i)]][,c("mRNA","RPF","protein")]
+  
+  # normalizing standard errors
+  quantileNorm[[paste0("TP",i)]] = alldfs[[paste0("TP",i)]] %>%
+    select(lfcse_mRNA, lfcse_RPF) %>%
+    as.matrix() %>% 
+    normalize.quantiles() %>% 
+    as_tibble()
+  colnames(quantileNorm[[paste0("TP",i)]]) = c("lfcse_mRNA", "lfcse_RPF")
+  
+  alldfs[[paste0("TP",i)]][,c("lfcse_mRNA","lfcse_RPF")] = quantileNorm[[paste0("TP",i)]][,c("lfcse_mRNA","lfcse_RPF")]
   
   # finding significant and borderline status again
   # after quantile normalization
@@ -202,15 +213,15 @@ plotGeneral = function(df, type, xLim, yLim){
     y = "protein"; x = "RPF"; form = paste0(y,"~",x)}
   
   model = lm(formula = form, data = df)
-  cortext = paste0("R^2 = ", summary(model)$r.squared %>% round(digits = 3))
+  cortext = paste0("*R<sup>2</sup>* = ", summary(model)$r.squared %>% round(digits = 3))
   p = pf(summary(model)$fstatistic[1],
          summary(model)$fstatistic[2],
          summary(model)$fstatistic[3],
          lower.tail = FALSE) %>% 
     formatC(format = "e", digits = 2)
-  pvaltext = paste0("p = ", p)
+  pvaltext = paste0("*p* = ", p)
   
-  grob = grobTree(textGrob(paste0(cortext, "; ", pvaltext),
+  grob = grobTree(richtext_grob(text = paste0(cortext, "; ", pvaltext),
                            gp=gpar(fontsize=8),
                            x=0.075, y=0.95, hjust=0))
   
@@ -291,18 +302,18 @@ plotLM = function(df, type, xLim, yLim){
   
   for(i in quadsIt){
     model[[i]] = lm(formula = form, data = dfSig %>% filter(!!var == i))
-    cortext[[i]] = paste0("R^2 = ", summary(model[[i]])$r.squared %>% round(digits = 3))
+    cortext[[i]] = paste0("*R<sup>2</sup>* = ", summary(model[[i]])$r.squared %>% round(digits = 3))
     p[[i]] = pf(summary(model[[i]])$fstatistic[1],
                 summary(model[[i]])$fstatistic[2],
                 summary(model[[i]])$fstatistic[3],
                 lower.tail = FALSE) %>% 
       formatC(format = "e", digits = 2)
-    pvaltext[[i]] = paste0("p = ", p[[i]])
+    pvaltext[[i]] = paste0("*p* = ", p[[i]])
     if(i == "Q1"){col = tab10col["Q1"]}
 #    if(i == "Q2"){col = tab10col["Q2"]}
     if(i == "Q3"){col = tab10col["Q3"]}
 #    if(i == "Q4"){col = tab10col["Q4"]}
-    grob[[i]] = grobTree(textGrob(paste0(cortext[[i]], "; ", pvaltext[[i]]),
+    grob[[i]] = grobTree(richtext_grob(text = paste0(cortext[[i]], "; ", pvaltext[[i]]),
                                   gp=gpar(fontsize=8, col=col),
                                   x=0.075, y=grobY, hjust=0))
     grobY = grobY - 0.05
@@ -356,5 +367,3 @@ ggarrange(plotlist = c(lmplots$TP2,
                        lmplots$TP3,
                        lmplots$TP4),
           nrow = 3, ncol = 3)
-
-# getting 

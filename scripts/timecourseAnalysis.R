@@ -102,13 +102,19 @@ timecourse = timecourse %>%
 tc = timecourse %>%
   dplyr::select(-starts_with("timePoint"),
                 -starts_with("cost"),
-                -starts_with("TLR_"),
-                -starts_with("beta_"),
-                -starts_with("RO_"),
+#                -starts_with("TLR_"),
+#                -starts_with("beta_"),
+#                -starts_with("RO_"),
                 -starts_with("pmrm")) %>% 
-  mutate(protein_TP0 = 0, RPF_TP0 = 0, mRNA_TP0 = 0,
-         lfcse_RPF_TP0 = 0, lfcse_mRNA_TP0 = 0) %>% 
-  rename_at(vars(matches("^mRNA|^RPF|^protein")),
+  mutate(protein_TP0 = 0,
+         RPF_TP0 = 0,
+         mRNA_TP0 = 0,
+         lfcse_RPF_TP0 = 0,
+         lfcse_mRNA_TP0 = 0,
+         RO_TP0 = 0,
+         beta_TP0 = 0,
+         TLR_TP0 = 0) %>% 
+  rename_at(vars(matches("^mRNA|^RPF|^protein|^RO|^beta|^TLR")),
             list(~sub("^","lfc_",.))) %>% 
   pivot_longer(cols = contains("TP"),
                names_to = c("measure", "libType", "timepoint"),
@@ -116,8 +122,8 @@ tc = timecourse %>%
                values_to = "lfc") %>% 
   pivot_wider(names_from = measure,
               values_from = lfc)
-# tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein","RO","beta","TLR"))
-tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein"))
+tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein","RO","beta","TLR"))
+#tc$libType = factor(tc$libType, levels=c("mRNA","RPF","protein", ))
 
 # scatters
 # alltp
@@ -153,8 +159,11 @@ genesOfInt = timecourse %>% arrange(costFunc_ProtmRNA_RPFmRNA_AllTP) %>% .$locus
 genesOfInt = timecourse %>% arrange(costFunc_ProtmRNA_RPFmRNA_Slide) %>% .$locus_tag %>% head(12)
 
 # trajectories alltp
-ggplot(data = tc[tc$locus_tag %in% genesOfInt,] %>% filter(timepoint != "TP32" & timepoint != "TP43"),
-       aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
+tc %>%
+  filter(tc$locus_tag %in% genesOfInt) %>% 
+  filter(timepoint != "TP32" & timepoint != "TP43") %>% 
+  filter(libType != "RO" & libType != "beta" & libType != "TLR") %>% 
+  ggplot(aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
   geom_line(size = 1, alpha = 0.75) +
   geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
   facet_wrap(~locus_tag) +

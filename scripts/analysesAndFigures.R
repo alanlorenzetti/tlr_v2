@@ -8,17 +8,17 @@
 source("scripts/loadingLibs.R")
 
 # adding functional categorization to
-# abundance dataframes
+# mag and angle dataframes
 abundLongFuncat = left_join(abundLong,
                             dictFunCat,
                             by = c("locus_tag" = "pfeiLocusTag"))
 
-abundNormFuncat = left_join(abundNorm,
-                            dictFunCat,
-                            by = c("locus_tag" = "pfeiLocusTag"))
+abundNormLongFuncat = left_join(abundNormLong,
+                                dictFunCat,
+                                by = c("locus_tag" = "pfeiLocusTag"))
 
 # Lsm trajectory
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(locus_tag %in% "VNG_1496G") %>% 
   filter(libtype != "protein_ribo" & libtype != "rna_occupancy" & libtype != "rna_psiTE") %>% 
   ggplot(aes(x = timepoint,
@@ -30,7 +30,7 @@ abundLongFuncat %>%
   facet_wrap(~ locus_tag)
 
 # ISH2 trajectory
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(locus_tag %in% "VNG_0210H") %>% 
   filter(libtype != "protein_ribo" & libtype != "rna_occupancy" & libtype != "rna_psiTE") %>% 
   ggplot(aes(x = timepoint,
@@ -54,7 +54,7 @@ joinedTibble[["TP4_vs_TP4"]] %>%
   geom_jitter(alpha = 0.2)
 
 # lsm in context of HL
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(libtype == "rna_total") %>% 
   ggplot(aes(x = log10(mean), y = HL, color = lsmSense)) +
   geom_point(alpha = 0.5) +
@@ -81,7 +81,7 @@ pDmUTP4 = joinedTibble[["TP4_vs_TP4"]] %>%
   select(locus_tag) %>% 
   unlist(use.names = F)
 
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(locus_tag %in% pDmUTP4) %>% 
   filter(libtype != "protein_ribo" & libtype != "rna_occupancy" & libtype != "rna_psiTE") %>% 
   ggplot(aes(x = timepoint,
@@ -117,7 +117,7 @@ joinedTibble[["TP4_vs_TP4"]] %>%
   coord_flip()
 
 # lsm in context of totalmRNA abundance
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(libtype == "rna_total") %>% 
   ggplot(aes(x = log10(mean), color = lsmSense)) +
   geom_density() +
@@ -129,7 +129,7 @@ mobilomeTP4 = joinedTibble[["TP4_vs_TP4"]] %>%
   select(locus_tag) %>% 
   unlist(use.names = F)
 
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(locus_tag %in% mobilomeTP4) %>% 
   filter(libtype != "protein_ribo" & libtype != "rna_occupancy" & libtype != "rna_psiTE") %>% 
   ggplot(aes(x = timepoint,
@@ -142,8 +142,123 @@ abundLongFuncat %>%
 
 # exploring abundance variables ####
 # protein abundance in function of mRNA
-# color == asRNA
+# no colorspace
+breaks = 10^(-10:10)
+minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
+abundNormLongFuncat %>% 
+  select(-se) %>% 
+  filter(locus_tag %in% riboProts) %>%
+  pivot_wider(names_from = libtype,
+              values_from = mean) %>% 
+  ggplot(aes(y = protein_lysate,
+             x = rna_total,
+             group = locus_tag,
+             color = timepoint)) +
+  geom_path(arrow = arrow(ends = "last",
+                          type = "closed",
+                          length = unit(0.1, "inches"),
+                          angle = 20),
+            alpha = 1,
+            show.legend = F) +
+#  facet_wrap(~ lsmSense) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  annotation_logticks() +
+  scale_color_manual(values = c("TP1" = seqblues[5],
+                                "TP2" = seqblues[10],
+                                "TP3" = seqblues[15],
+                                "TP4" = seqblues[20]))
+
+# protein abundance in function of mRNA
+# no colorspace  
 abundLongFuncat %>% 
+  select(-se) %>% 
+  pivot_wider(names_from = libtype,
+              values_from = mean) %>% 
+  ggplot(aes(y = protein_lysate,
+             x = rna_total)) +
+#    geom_density2d() +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  stat_cor(method = "pearson") +
+  facet_wrap(~ timepoint) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  annotation_logticks()
+
+# slide prot from TPi+1 mRNA from TPi
+# TP2 vs TP1
+slide1 = abundNorm %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP2,
+             x = mean_abundance_rna_total_TP1)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm") +
+  stat_cor(method = "pearson") +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  annotation_logticks() +
+  ggtitle("Protein TP2 vs. mRNA TP1")
+
+# TP3 vs TP2
+slide2 = abundNorm %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP3,
+             x = mean_abundance_rna_total_TP2)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm") +
+  stat_cor(method = "pearson") +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  annotation_logticks() +
+  ggtitle("Protein TP3 vs. mRNA TP2")
+
+# TP4 vs TP3
+slide3 = abundNorm %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP4,
+             x = mean_abundance_rna_total_TP3)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm") +
+  stat_cor(method = "pearson") +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = TRUE)) +
+  annotation_logticks() +
+  ggtitle("Protein TP4 vs. mRNA TP3")
+
+# arranging plots
+ggarrange(slide1, slide2, slide3,
+          ncol = 3, nrow = 1)
+
+# color == asRNA
+abundNormLongFuncat %>% 
 select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -159,7 +274,7 @@ select(-se) %>%
 
 # protein abundance in function of mRNA
 # color == LSm
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -174,7 +289,7 @@ abundLongFuncat %>%
   xlab("log10(mRNA Abundance)") 
 
 # proteins in function rpfs
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -191,7 +306,7 @@ abundLongFuncat %>%
 # are they active translating ribosomes
 # or stalled ribosomes?
 # occupancy vs total
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -209,7 +324,7 @@ abundLongFuncat %>%
                         palette = "RdYlGn")
 
 # occupancy vs protein abundance
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -223,7 +338,7 @@ abundLongFuncat %>%
   xlab("log10(Protein Abundance)")
 
 # occupancy vs cai
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -238,7 +353,7 @@ abundLongFuncat %>%
 
 # what means translational efficiency? ####
 # translational efficiency in function of total mRNA
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -252,7 +367,7 @@ abundLongFuncat %>%
   xlab("log10(mRNA Abundance)")
 
 # translational efficiency in function of protein abundance
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -266,7 +381,7 @@ abundLongFuncat %>%
   xlab("log10(Protein Abundance)")
 
 # translational efficiency in function of rpf abundance
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -280,7 +395,7 @@ abundLongFuncat %>%
   xlab("log10(RPF Abundance)")
 
 # translational efficiency in function of occupancy
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -294,31 +409,33 @@ abundLongFuncat %>%
   xlab("log2(Ribosome Occupancy)")
   
 # checking if abundance and LSm are related
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   ggplot(aes(y=log10(mean), x=timepoint, fill = libtype)) +
   geom_violin() +
   facet_grid(~ lsmSense)
 
 # checking if abundance and asRNA are related
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   ggplot(aes(y=log10(mean), x=timepoint, fill = libtype)) +
   geom_boxplot() +
   facet_grid(~ asRNA)
 
 # combining both with facets
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   ggplot(aes(y=log10(mean), x=timepoint, fill = libtype)) +
   geom_boxplot() +
   facet_grid(lsmSense ~ asRNA)
 
 # checking if abundance and cai are related
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   ggplot(aes(x = cai, y = log10(mean), color = timepoint)) +
   geom_point() +
   facet_grid(~ libtype)
 
+# trajectories #####
 # checking trajectories of ribosome proteins
-abundLongFuncat %>% 
+riboProts = dictFunCat$pfeiLocusTag[dictFunCat$pfeiProduct %>% str_detect("ribosomal")]
+abundNormLongFuncat %>% 
   filter(locus_tag %in% riboProts) %>% 
   ggplot(aes(x = timepoint,
              y = log10(mean),
@@ -330,7 +447,7 @@ abundLongFuncat %>%
 
 # checking trajectories of gas vesicles
 gasVesProts = dictFunCat$pfeiLocusTag[dictFunCat$pfeiProduct %>% str_detect("vesicle")]
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(locus_tag %in% gasVesProts) %>% 
   ggplot(aes(x = timepoint,
              y = log10(mean),
@@ -341,8 +458,9 @@ abundLongFuncat %>%
   facet_wrap(~ locus_tag)
 
 # checking trajectories of mobilome proteins
-abundLongFuncat %>% 
+abundNormLongFuncat %>% 
   filter(arCOG == "Mobilome: prophages, transposons") %>% 
+  filter(libtype != "rna_psiTE" & libtype != "rna_occupancy" & libtype != "protein_ribo") %>% 
   ggplot(aes(x = timepoint,
              y = log10(mean),
              color = libtype,
@@ -350,6 +468,90 @@ abundLongFuncat %>%
   geom_line() +
   geom_linerange(aes(ymin = log10(mean-se), ymax = log10(mean+se))) +
   facet_wrap(~ locus_tag)
+
+# showing that proteins with abundance < 10^2 are low abundance
+# i.e. lower tail 
+abundNormLongFuncat %>% 
+  filter(libtype == "protein_lysate") %>% 
+  filter(timepoint == "TP4") %>% 
+  ggplot(aes(x = log10(mean))) + 
+  geom_density() +
+  geom_vline(xintercept = 2)
+
+# showing that mRNAs with abundance > 10^4 are high abundance
+# i.e. upper tail
+abundNormLongFuncat %>% 
+  filter(libtype == "rna_total") %>% 
+  filter(timepoint == "TP4") %>% 
+  ggplot(aes(x = log10(mean))) + 
+  geom_density() +
+  geom_vline(xintercept = 4)
+
+# this function will take a list
+# of gene names and will return a list
+# of plots, one plot per gene
+# it plots mRNA and protein levels
+# for each time point over a distribution
+# this make sense only for the quantile
+# normalized dataset. ie. identical distributions
+# despite the libtype
+plotDistribution = function(df, geneNames){
+  # creating an empty list
+  plots = list()
+  
+  # setting up breaks for x axis
+  breaks = 10^(-10:10)
+  minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
+  
+  # run this for each gene
+  for(i in geneNames){
+    dataDist = df %>%
+      filter(libtype == "protein_lysate")
+    
+    dataAbundLevels = df %>% 
+      filter(libtype == "protein_lysate" | libtype == "rna_total") %>% 
+      filter(locus_tag == i)
+    
+    distPlot = dataDist %>% 
+      ggplot(aes(x = mean)) +
+      geom_density()
+    
+    distPlot = distPlot + 
+      geom_vline(data = dataAbundLevels,
+                 mapping = aes(xintercept = mean,
+                               color = timepoint,
+                               linetype = libtype)) +
+      ylab("Density") +
+      xlab("Abundance") +
+      labs(color = "Time point",
+           linetype = "Lib. Type") +
+      scale_x_log10(breaks = breaks, minor_breaks = minor_breaks) +
+      annotation_logticks(sides = "b") +
+      scale_color_manual(values = c("TP1" = "#E15759",
+                                    "TP2" = "#59A14F",
+                                    "TP3" = "#4E79A7",
+                                    "TP4" = "#B07AA1")) +
+      ggtitle(i)
+    
+    plots[[i]] = distPlot
+  }
+  
+  return(plots)
+}
+
+# using the function above to plot
+# all mobile elements
+mobilomeProts = abundNormLongFuncat %>% 
+  filter(arCOG == "Mobilome: prophages, transposons") %>% 
+  select(locus_tag) %>% 
+  unlist(use.names = F) %>% 
+  sort() %>% 
+  unique()
+
+mobilDistPlots = plotDistribution(abundNormLongFuncat, mobilomeProts)
+ggarrange(plotlist = mobilDistPlots,
+          common.legend = T,
+          legend = "right")
 
 # checking relationship between occupancy and protein abundance
 # seems like the higher the occupancy, the lower is the protein content
