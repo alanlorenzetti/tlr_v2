@@ -98,7 +98,10 @@ timecourse = timecourse %>%
                                    TRUE ~ "yes"))
 
 # pivoting dataframe
-# and adding a T0 with lfc and lfcse = 0 
+# and adding a TP0 with lfc and lfcse = 0
+# it is an artificial time point and for
+# aesthetics reasons, it is gonna be called
+# TP1
 tc = timecourse %>%
   dplyr::select(-starts_with("timePoint"),
                 -starts_with("cost"),
@@ -106,14 +109,14 @@ tc = timecourse %>%
 #                -starts_with("beta_"),
 #                -starts_with("RO_"),
                 -starts_with("pmrm")) %>% 
-  mutate(protein_TP0 = 0,
-         RPF_TP0 = 0,
-         mRNA_TP0 = 0,
-         lfcse_RPF_TP0 = 0,
-         lfcse_mRNA_TP0 = 0,
-         RO_TP0 = 0,
-         beta_TP0 = 0,
-         TLR_TP0 = 0) %>% 
+  mutate(protein_TP1 = 0,
+         RPF_TP1 = 0,
+         mRNA_TP1 = 0,
+         lfcse_RPF_TP1 = 0,
+         lfcse_mRNA_TP1 = 0,
+         RO_TP1 = 0,
+         beta_TP1 = 0,
+         TLR_TP1 = 0) %>% 
   rename_at(vars(matches("^mRNA|^RPF|^protein|^RO|^beta|^TLR")),
             list(~sub("^","lfc_",.))) %>% 
   pivot_longer(cols = contains("TP"),
@@ -175,13 +178,13 @@ tc %>%
 
 # assuming is protein is consequence of previous time point contrast
 # trajectories slide
-ggplot(data = tc[tc$locus_tag %in% genesOfInt,] %>% filter(timepoint == "TP32" | timepoint == "TP43"),
-       aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
-  geom_line(size = 1, alpha = 0.75) +
-  geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
-  facet_wrap(~locus_tag) +
-  xlab("Time Point") + ylab("LFC") +
-  scale_color_manual(values = c("mRNA" = "#E15759",
-                                "RPF" = "#F28E2B",
-                                "protein" = "#4E79A7"),
-                     name = "Variable")
+# ggplot(data = tc[tc$locus_tag %in% genesOfInt,] %>% filter(timepoint == "TP32" | timepoint == "TP43"),
+#        aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
+#   geom_line(size = 1, alpha = 0.75) +
+#   geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
+#   facet_wrap(~locus_tag) +
+#   xlab("Time Point") + ylab("LFC") +
+#   scale_color_manual(values = c("mRNA" = "#E15759",
+#                                 "RPF" = "#F28E2B",
+#                                 "protein" = "#4E79A7"),
+#                      name = "Variable")

@@ -308,3 +308,48 @@ for(i in names(regRules)){
 }
 
 #ht_shiny(htlist[[i]])
+
+# unifying all fold changes in a same heatmap figure #####
+# preparing data
+hmfc = tibble(protein_TP2 = alldfs$TP2$protein,
+              mRNA_TP2 = alldfs$TP2$mRNA,
+              RPF_TP2 = alldfs$TP2$RPF,
+              protein_TP3 = alldfs$TP3$protein,
+              mRNA_TP3 = alldfs$TP3$mRNA,
+              RPF_TP3 = alldfs$TP3$RPF,
+              protein_TP4 = alldfs$TP4$protein,
+              mRNA_TP4 = alldfs$TP4$mRNA,
+              RPF_TP4 = alldfs$TP4$RPF) %>% 
+  as.matrix()
+
+rownames(hmfc) = alldfs$TP2$locus_tag
+
+# plotting 
+Heatmap(hmfc,
+        name = "LFC",
+        col = colors,
+        show_heatmap_legend = T,
+        row_names_side = "right",
+        show_row_names = F,
+        column_order = colnames(hmfc),
+        column_split = factor(c(rep("TP2", 3),
+                              rep("TP3", 3),
+                              rep("TP4", 3)),
+                              levels = c("TP2", "TP3", "TP4")),
+#        left_annotation = row_ha[[i]],
+#        row_split = factor(joinedTibble[[i]]$regRule,
+ #                          levels=joinedTibble[[i]]$regRule %>% unique()),
+        #                                              row_split = factor(joinedTibble[[i]]$utrSize),
+        #                                              row_split = factor(joinedTibble[[i]]$lsmSense),
+        #                                              row_split = factor(joinedTibble[[i]]$arCOG),
+        #                                              row_split = factor(joinedTibble[[i]]$asRNA),
+#        cluster_row_slices = FALSE,
+        row_title = NULL,
+        border = T,
+        heatmap_legend_param = list(
+          title = "LFC",
+          at = c(-5, 0, 5),
+          border = T))
+
+
+

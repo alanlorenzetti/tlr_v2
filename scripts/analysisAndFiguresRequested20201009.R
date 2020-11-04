@@ -14,6 +14,12 @@ source("scripts/loadingLibs.R")
 breaks = 10^(-10:10)
 minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
 
+# creating a copy of abundNormLongFuncat
+# without artificial TP0
+abundNormLongFuncatWTP0 = abundNormLongFuncat
+abundNormLongFuncat = abundNormLongFuncat %>% 
+  filter(timepoint != "TP0")
+
 # protein abundance in function of mRNA ####
 # no colorspace  
 protvsmrna = abundNormLongFuncat %>% 
@@ -458,6 +464,11 @@ ggsave(filename = "plots/62_tlr_vs_mrna_slides.png",
        width = 10,
        height = 3)
 
+# SEPARATOR - --- -- - - - -- - ##########
+
+# getting again a object with TP0
+abundNormLongFuncat = abundNormLongFuncatWTP0
+
 # trajectories of genes showing
 # interesting patterns of translational regulation
 melements = abundNormLongFuncat %>% 
@@ -503,8 +514,8 @@ while(f <= length(allLocusTags)){
     facet_wrap(~ locus_tag) +
     scale_y_log10(breaks = breaks,
                   minor_breaks = minor_breaks,
-                  labels = function(x) format(x, scientific = TRUE)) +
-    ylab("Abundance") +
+                  labels = function(x) format(log10(x), scientific = F)) +
+    ylab("log10(Abundance)") +
     xlab("Time point") +
     annotation_logticks(sides = "l") +
     scale_color_manual(name = "Lib. Type",
@@ -528,6 +539,7 @@ while(f <= length(allLocusTags)){
   cols = c("rna_psiTE" = "#B07AA1",
            "rna_occupancy" = "#76B7B2",
            "rna_tlr" = "#F28E2B")
+  
   ratioTrajectories = abundNormDerLong %>% 
     filter(locus_tag %in% protSet) %>% 
     filter(libtype != "protein_ribo") %>% 
@@ -582,11 +594,11 @@ for(i in allLocusTags){
                group = libtype)) +
     geom_line() +
     geom_linerange(aes(ymin = mean-se, ymax = mean+se)) +
-    facet_wrap(~ locus_tag) +
+#    facet_wrap(~ locus_tag) +
     scale_y_log10(breaks = breaks,
                   minor_breaks = minor_breaks,
-                  labels = function(x) format(x, scientific = TRUE)) +
-    ylab("Abundance") +
+                  labels = function(x) format(log10(x), scientific = F)) +
+    ylab("log10(Abundance)") +
     xlab("Time point") +
     annotation_logticks(sides = "l") +
     scale_color_manual(name = "Lib. Type",
@@ -609,8 +621,8 @@ for(i in allLocusTags){
                color = libtype,
                group = libtype)) +
     geom_line() +
-    geom_linerange(aes(ymin = mean-se, ymax = mean+se)) +
-    facet_wrap(~ locus_tag) +
+#    geom_linerange(aes(ymin = mean-se, ymax = mean+se)) +
+#    facet_wrap(~ locus_tag) +
     #  ylim(c(-12, 5)) +
     ylab("log2(Ratio)") +
     xlab("Time point") +
@@ -714,7 +726,7 @@ for(i in allLocusTags){
     ggplot(aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
     geom_line() +
     geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
-    facet_wrap(~locus_tag) +
+#    facet_wrap(~locus_tag) +
     xlab("Time point") + ylab("log2(Fold Change)") +
     scale_color_manual(name = "Lib. Type",
                        values = cols,
@@ -732,8 +744,8 @@ for(i in allLocusTags){
     filter(libType == "RO" | libType == "beta" | libType == "TLR") %>% 
     ggplot(aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
     geom_line() +
-    geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
-    facet_wrap(~locus_tag) +
+#    geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
+#    facet_wrap(~locus_tag) +
     xlab("Time point") + ylab("log2(Ratio)") +
     scale_color_manual(name = "Ratio",
                        values = cols,
@@ -747,11 +759,54 @@ all = c("VNG_0614G",
         "VNG_0013C",
         "VNG_0084G")
 
-ggsave(filename = "plots/71_abundTrajectories_tc_tpwise.png",
-       plot = abundTrajectories,
-       units = "in",
-       width = 10,
-       height = 3)
+# function to plot a complete panel of individual genes
+plotTrajPanel = function(geneName){
+  p1 = ggarrange(plotlist = list(trajectoryPlots$abund[[geneName]] + ggtitle("A"),
+                                 trajectoryPlots$lfc[[geneName]] + ggtitle("B")),
+                 common.legend = T,
+                 legend = "bottom",
+                 align = "hv")
+  
+  p2 = ggarrange(plotlist = list(trajectoryPlots$ratios[[geneName]] + ggtitle("C"),
+                                 trajectoryPlots$lfcRatios[[geneName]] + ggtitle("D")),
+                 common.legend = T,
+                 legend = "bottom",
+                 align = "hv")
+  
+  proteinProd = dictFunCat %>%
+    filter(pfeiLocusTag == geneName) %>%
+    select(pfeiProduct) %>%
+    unlist(use.names = F)
+    
+  p12 = annotate_figure(p = ggarrange(p1, p2,
+                                      nrow = 2,
+                                      align = "hv"),
+                        top = paste0(geneName, "; ", proteinProd))
+  
+  return(p12)
+}
+
+# plotting panels
+# finding genes that are both represented
+# in absolute abundance and relative changes datasets
+allLocusTagsAbund = abundNormLong$locus_tag %>% 
+  sort() %>% 
+  unique()
+allLocusTagsRel = tc$locus_tag %>% 
+  sort() %>% 
+  unique()
+LTabundRel = base::intersect(allLocusTagsAbund, allLocusTagsRel)
+
+if(!dir.exists("plots/panels")){dir.create("plots/panels")}
+for(i in LTabundRel){
+  panel = plotTrajPanel(i)
+  
+  ggsave(filename = paste0("plots/panels/", i, ".png"),
+         plot = panel,
+         units = "in",
+         width = 5,
+         height = 6)
+}
 
 # a list of manually inspected genes: proteins explained by occupancy #####
 # here, protein levels are explained by mrna levels and occupancy
@@ -759,8 +814,88 @@ all = c("VNG_0063G",
         "VNG_0115G",
         "VNG_1204G")
 
-ggsave(filename = "plots/71_abundTrajectories_te_tpwise.png",
-       plot = abundTrajectories,
+# plotting a few manually selected genes: protein explained by RO ######
+# examples of occupancy increasing protein levels
+# "VNG_7102",
+# "VNG_0008G",
+# "VNG_0403G",
+# "VNG_0549G",
+# "VNG_6270G",
+
+geneset = c("VNG_0144H", 
+            "VNG_0294G", 
+            "VNG_1204G") 
+
+cols = c("protein" = "#E15759",
+         "RPF" = "#59A14F",
+         "mRNA" = "#4E79A7",
+         "RO" = "#76B7B2")
+
+# plotting 
+p1 = tc %>%
+  filter(tc$locus_tag %in% geneset) %>% 
+  filter(timepoint != "TP32" & timepoint != "TP43") %>% 
+  filter(libType != "beta" & libType != "TLR") %>% 
+  ggplot(aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
+  geom_line() +
+  geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
+  facet_wrap(~locus_tag) +
+  xlab("Time point") + ylab("log2(Fold Change)") +
+  scale_color_manual(name = "",
+                     values = cols,
+                     breaks = c("protein", "RPF", "mRNA", "RO"),
+                     labels = c("Protein", "RPFs", "mRNA", "RO")) +
+  ylim(c(-6,6)) +
+  ggtitle("A")
+
+# saving
+ggsave(filename = paste0("plots/ro_increasing_protein_lvls.png"),
+       plot = p1,
        units = "in",
-       width = 10,
-       height = 3)
+       width = 6,
+       height = 2)
+
+# examples of occupancy decreasing protein levels
+# VNG_0373H
+geneset2 = c("VNG_0194H",
+             "VNG_1471C",
+             "VNG_0789C")
+
+# VNG_1345H
+#"VNG_0373H",
+#VNG_1294G
+
+# plotting
+p2 = tc %>%
+  filter(tc$locus_tag %in% geneset2) %>% 
+  filter(timepoint != "TP32" & timepoint != "TP43") %>% 
+  filter(libType != "beta" & libType != "TLR") %>% 
+  ggplot(aes(x=timepoint, y=lfc, colour = libType, group = libType)) +
+  geom_line() +
+  geom_linerange(aes(ymin = lfc-lfcse, ymax = lfc+lfcse)) +
+  facet_wrap(~locus_tag) +
+  xlab("Time point") + ylab("log2(Fold Change)") +
+  scale_color_manual(name = "",
+                     values = cols,
+                     breaks = c("protein", "RPF", "mRNA", "RO"),
+                     labels = c("Protein", "RPFs", "mRNA", "RO")) +
+  ylim(c(-6,6)) +
+  ggtitle("B")
+
+# saving
+ggsave(filename = paste0("plots/ro_decreasing_protein_lvls.png"),
+       plot = p2,
+       units = "in",
+       width = 6,
+       height = 2)
+
+# arranging both in a panel
+p3 = ggarrange(p1, p2, nrow = 2, common.legend = T, legend = "bottom")
+
+# saving
+ggsave(filename = paste0("plots/ro_influencing_protein_lvls.png"),
+       plot = p3,
+       units = "in",
+       width = 6,
+       height = 5)
+
