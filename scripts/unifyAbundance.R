@@ -13,21 +13,21 @@ source("scripts/loadingLibs.R")
 abund = left_join(spectroWide, tpm, by = "locus_tag")
 
 abundmean = abund %>%
-  select(starts_with("mean")) %>%
+  dplyr::select(starts_with("mean")) %>%
   as.matrix() %>% 
   normalize.quantiles() %>% 
   as_tibble()
 colnames(abundmean) = abund %>%
-  select(starts_with("mean")) %>% 
+  dplyr::select(starts_with("mean")) %>% 
   colnames()
 
 abundse = abund %>%
-  select(starts_with("se")) %>%
+  dplyr::select(starts_with("se")) %>%
   as.matrix() %>% 
   normalize.quantiles() %>% 
   as_tibble()
 colnames(abundse) = abund %>%
-  select(starts_with("se")) %>% 
+  dplyr::select(starts_with("se")) %>% 
   colnames()
 
 abundNorm = bind_cols(abund[,"locus_tag"],
@@ -128,8 +128,8 @@ abundNormDerLong = abundNormDer %>%
 # heatmap
 # colfunct = circlize::colorRamp2(breaks = c(0,3,6), colors = viridis(3))
 # M = abundNorm %>%
-#   select(-locus_tag,-starts_with("se")) %>%
-#   select(ends_with("TP1")) %>%
+#   dplyr::select(-locus_tag,-starts_with("se")) %>%
+#   dplyr::select(ends_with("TP1")) %>%
 #   drop_na() %>%
 #   as.matrix()
 # M = M + 1

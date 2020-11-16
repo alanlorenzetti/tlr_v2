@@ -87,7 +87,7 @@ riborna=read_delim("data/tableEstCountsRiboSeqTrim15.tsv",delim="\t")
 ## building se object for both
 # totrna
 samples = totrna %>% 
-  select(starts_with("total")) %>%
+  dplyr::select(starts_with("total")) %>%
   colnames()
 tp = samples %>% 
   sub("^.*-RNA-[1-3]-([1-4])_S.*$", "\\1", .)
@@ -98,7 +98,7 @@ colData = data.frame(row.names = samples,
                      timepoint = tp,
                      replicate = bioRep)
 
-assay = select(totrna, starts_with("total")) %>%
+assay = dplyr::select(totrna, starts_with("total")) %>%
   as.matrix() %>% 
   round(digits = 0)
 
@@ -109,7 +109,7 @@ rownames(totrnaSE) = rowData(totrnaSE)$target_id
 
 # riborna
 samples = riborna %>% 
-  select(starts_with("ribosomal")) %>%
+  dplyr::select(starts_with("ribosomal")) %>%
   colnames()
 tp = samples %>% 
   sub("^.*_RNA_[1-3]-([1-4])_S.*$", "\\1", .)
@@ -120,7 +120,7 @@ colData = data.frame(row.names = samples,
                      timepoint = tp,
                      replicate = bioRep)
 
-assay = select(riborna, starts_with("ribosomal")) %>%
+assay = dplyr::select(riborna, starts_with("ribosomal")) %>%
   as.matrix() %>% 
   round(digits = 0)
 
@@ -196,7 +196,7 @@ for(i in 2:4 %>% as.character()){
                                             by = "target_id") %>% 
     rename("id" = target_id) %>% 
     mutate(locus_tag = sub("\\|.*$", "", id)) %>% 
-    select(locus_tag,
+    dplyr::select(locus_tag,
            everything(),
            -id) %>% 
     rename_with(.fn = ~ str_replace(string = .x,

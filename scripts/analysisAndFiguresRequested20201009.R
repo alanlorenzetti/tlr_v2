@@ -23,7 +23,7 @@ abundNormLongFuncat = abundNormLongFuncat %>%
 # protein abundance in function of mRNA ####
 # no colorspace  
 protvsmrna = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = protein_lysate,
@@ -119,7 +119,7 @@ ggsave(filename = "plots/12_prot_vs_mrna_slides.png",
 # Protein in function of RPF ####
 # no colorspace  
 proteinvsrpf = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = protein_lysate,
@@ -215,7 +215,7 @@ ggsave(filename = "plots/22_prot_vs_rpf_slides.png",
 # RPFs in function of mRNA ####
 # no colorspace  
 rpfvsmrna = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = rna_ribofraction,
@@ -245,7 +245,7 @@ ggsave(filename = "plots/31_rpf_vs_mrna_tpwise.png",
 # Transcriptional Regulation in function of mRNA ####
 # no colorspace
 tcvsmrna = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = log2(protein_lysate / rna_total),
@@ -341,7 +341,7 @@ ggsave(filename = "plots/42_tc_vs_mrna_slides.png",
 # Translational Efficiency in function of mRNA ####
 # no colorspace
 tevsmrna = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = log2(rna_ribofraction / rna_total),
@@ -371,7 +371,7 @@ ggsave(filename = "plots/51_te_vs_mrna_tpwise.png",
 # Translational Regulation (TLR) in function of mRNA ####
 # no colorspace
 tlrvsmrna = abundNormLongFuncat %>% 
-  select(-se) %>% 
+  dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = log2((protein_lysate / rna_total) / (rna_ribofraction / rna_total)),
@@ -473,7 +473,7 @@ abundNormLongFuncat = abundNormLongFuncatWTP0
 # interesting patterns of translational regulation
 melements = abundNormLongFuncat %>% 
   filter(arCOG == "Mobilome: prophages, transposons") %>% 
-  select(locus_tag) %>% 
+  dplyr::select(locus_tag) %>% 
   unlist(use.names = F) %>% 
   unique()
 
@@ -775,7 +775,7 @@ plotTrajPanel = function(geneName){
   
   proteinProd = dictFunCat %>%
     filter(pfeiLocusTag == geneName) %>%
-    select(pfeiProduct) %>%
+    dplyr::select(pfeiProduct) %>%
     unlist(use.names = F)
     
   p12 = annotate_figure(p = ggarrange(p1, p2,

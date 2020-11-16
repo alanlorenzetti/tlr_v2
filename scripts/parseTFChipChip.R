@@ -6,6 +6,9 @@
 # coming from ChIP-chip.ggb file
 # provided by rvencio
 
+# loading libs #####
+source("scripts/loadingLibs.R")
+
 # loading and parsing tf file #####
 tfggb = read_delim(file = "data/ChIP-chip.ggb",
                    delim = "\t")

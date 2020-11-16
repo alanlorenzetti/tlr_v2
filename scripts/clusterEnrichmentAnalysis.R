@@ -24,7 +24,7 @@ vars = c("lsmSense", "arCOG", "asRNA")
 enrich = list()
 for(i in names(joinedTibble)){
   regGroups = joinedTibble[[i]] %>%
-    select(regRule) %>% 
+    dplyr::select(regRule) %>% 
     unlist(use.names = F) %>%
     unique()
   for(j in regGroups){
@@ -32,7 +32,7 @@ for(i in names(joinedTibble)){
       filter(regRule == j)
     for(k in vars){
       curRegGroupVec = curRegGroup %>% 
-        select(k) %>% 
+        dplyr::select(k) %>% 
         unlist(use.names = F)
       
       curRegGroupLvs = curRegGroupVec %>% 
@@ -41,7 +41,7 @@ for(i in names(joinedTibble)){
       for(l in curRegGroupLvs){
         wb = sum(curRegGroupVec == l)
         vecu = dictFunCat %>% 
-          select(k) %>% 
+          dplyr::select(k) %>% 
           unlist(use.names = F)
         wu = sum(vecu == l)
         bu = sum(vecu != l)
@@ -72,7 +72,7 @@ vars = c("lsmSense", "regRule", "asRNA")
 
 for(i in names(joinedTibble)){
   regGroups = joinedTibble[[i]] %>%
-    select(arCOG) %>% 
+    dplyr::select(arCOG) %>% 
     unlist(use.names = F) %>%
     unique()
   for(j in regGroups){
@@ -80,7 +80,7 @@ for(i in names(joinedTibble)){
       filter(arCOG == j)
     for(k in vars){
       curRegGroupVec = curRegGroup %>% 
-        select(k) %>% 
+        dplyr::select(k) %>% 
         unlist(use.names = F)
       
       curRegGroupLvs = curRegGroupVec %>% 
@@ -91,11 +91,11 @@ for(i in names(joinedTibble)){
         
         if(k == "regRule"){
           vecu = joinedTibble[[i]] %>% 
-            select(k) %>% 
+            dplyr::select(k) %>% 
             unlist(use.names = F)
         }else{
           vecu = dictFunCat %>% 
-            select(k) %>% 
+            dplyr::select(k) %>% 
             unlist(use.names = F)
         }
         

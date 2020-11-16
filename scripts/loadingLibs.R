@@ -43,7 +43,9 @@ packs = c("BiocManager",
           "viridis",
           "matrixStats",
           "scales",
-          "ggridges")
+          "ggridges",
+          "openxlsx",
+          "mclust")
 
 # loading and installing missing packages
 p_load(char = packs)

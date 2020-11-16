@@ -18,7 +18,7 @@ if(!file.exists("data/microbesOnlineOperons.RData")){
 }
 
 # filtering in only needed cols
-df = df %>% select(SysName1,SysName2,bOp)
+df = df %>% dplyr::select(SysName1,SysName2,bOp)
 
 # function to parse the table
 parseOperons = function(df){
@@ -95,7 +95,7 @@ parseOperons = function(df){
     filter(n > 1) %>% 
     mutate(genes = paste0("Operon:",paste0(locus_tag, collapse = ","))) %>% 
     ungroup() %>% 
-    select(locus_tag = locus_tag,
+    dplyr::select(locus_tag = locus_tag,
            operon = genes)
   
   return(output)

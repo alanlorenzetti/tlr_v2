@@ -16,7 +16,7 @@ CT = codonTable(pfeiSeqsShortNames)
 # getting codon adaptation index
 # using ribosomal proteins as the reference set
 # riboProts = dictProd[str_detect(string = dictProd$product.y, pattern = "ribosomal"),] %>% 
-#   select(subject_id) %>% 
+#   dplyr::select(subject_id) %>% 
 #   unlist() %>% 
 #   unname()
 

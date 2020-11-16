@@ -18,7 +18,7 @@ computeAngMag = function(df, tp){
   tip1 = sub("(.*)_vs_.*", "\\1", tp)
   
   dfFil = df %>% 
-    select(locus_tag,
+    dplyr::select(locus_tag,
            starts_with("mean") &
              (ends_with(ti) | ends_with(tip1)) &
              (contains("protein_lysate") | contains("rna_total")))
@@ -81,7 +81,7 @@ abundNorm2Funcat %>%
 
 # angles and categories
 abundNorm2Funcat %>% 
-  select(!contains("abundance")) %>% 
+  dplyr::select(!contains("abundance")) %>% 
   pivot_longer(cols = contains("slide"),
                names_pattern = "(.*)_slide(.*)",
                names_to = c("var", "slide"),
@@ -95,7 +95,7 @@ abundNorm2Funcat %>%
 
 # angles and continuous
 abundNorm2Funcat %>% 
-  select(!contains("abundance")) %>% 
+  dplyr::select(!contains("abundance")) %>% 
   pivot_longer(cols = contains("slide"),
                names_pattern = "(.*)_slide(.*)",
                names_to = c("var", "slide"),
@@ -153,7 +153,7 @@ ggarrange(plotlist = magAngPlots,
 
 nearZero = abundNorm2 %>% 
   filter(ang_slideTP1TP2 > 85 & ang_slideTP1TP2 < 95) %>% 
-  select(locus_tag) %>% 
+  dplyr::select(locus_tag) %>% 
   drop_na() %>% 
   unlist(use.names = F) %>% 
   sort()

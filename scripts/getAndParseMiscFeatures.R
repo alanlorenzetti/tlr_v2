@@ -19,7 +19,7 @@ source("scripts/loadingLibs.R")
 # that will be taken into consideration
 lsmGenes = read_delim(file = "data/resultsLSmGenes.csv", delim = ",") %>% 
   mutate(name = sub("^5UTR_", "", name)) %>% 
-  select(-chr,-start,-end,-strand) %>% 
+  dplyr::select(-chr,-start,-end,-strand) %>% 
   group_by(name) %>% 
   summarise_all(.funs = list(sum)) %>% 
   ungroup() %>% 
@@ -37,13 +37,13 @@ lsmGenes = read_delim(file = "data/resultsLSmGenes.csv", delim = ",") %>%
 utr = read_delim(file = "data/5UTR.txt",
                  delim = "\t",
                  col_names = T) %>% 
-  select(-length)
+  dplyr::select(-length)
 
 # getting and parsing info about UTR mfe
 utrmfe = read_delim(file = "data/5UTRplus18ntdownstream_mfe.txt",
                     delim = "\t",
                     col_names = T) %>% 
-  select(-seq,-dotbracket)
+  dplyr::select(-seq,-dotbracket)
 
 # getting GC content info for each gene
 # based on sequences stored in pfeiSeq object

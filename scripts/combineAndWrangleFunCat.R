@@ -53,7 +53,7 @@ colnames(dictFunCat)[colnames(dictFunCat) == "query_id"] = "locus_tag"
 # to locus_tags, check dictProd object
 # I will also drop a few cols that I am not using right now
 dictFunCat = dictFunCat %>% 
-  select(-UNIPROTKB,-GO,-KEGGpathway,-operon) %>% 
+  dplyr::select(-UNIPROTKB,-GO,-KEGGpathway,-operon) %>% 
   arrange(pfeiLocusTag,arCOG_ID)
 
 # I am keeping only the first entry of repetitive pfeiLocusTags
@@ -82,7 +82,14 @@ dictFunCat = left_join(dictFunCat, halfLives, by = c("pfeiLocusTag" = "locus_tag
 # adding codon index usage
 dictFunCat = left_join(dictFunCat, cai, by = c("pfeiLocusTag" = "locus_tag"))
 
-# adjusting missing values
+# adding transcription factor information obtained
+# from chip-seq 
+dictFunCat = left_join(dictFunCat, chipSeqTFs, by = c("pfeiLocusTag" = "locus_tag"))
+
+# and chip-chip experiments
+dictFunCat = left_join(dictFunCat, chipChipTFs, by = c("pfeiLocusTag" = "locus_tag"))
+
+# adjusting missing values for a few vars
 dictFunCat = dictFunCat %>% 
   mutate(lsmSense = case_when(is.na(lsmSense) ~ "no",
                               TRUE ~ as.character(lsmSense)),
@@ -96,6 +103,12 @@ dictFunCat = dictFunCat %>%
          asRNA = case_when(is.na(asRNA) ~ "no",
                            TRUE ~ as.character(asRNA))
 )
+
+# adjusting missing values for TF-related vars
+dictFunCat = dictFunCat %>% 
+  mutate(across(starts_with("ChIP"),
+                .fns = ~ case_when(is.na(.x) ~ "no",
+                                   TRUE ~ as.character(.x))))
 
 # I wondered why ISH2 was categorized as a defense mechanism in arCOG
 # apparently, ISH2's arCOG09385 is described as NikR gene
@@ -111,6 +124,7 @@ dictFunCat = dictFunCat %>%
                            TRUE ~ as.character(arCOG)),
          arCOGcode = case_when(grepl(x = dictFunCat$pfeiProduct, pattern = "transposase") ~ "X",
                                TRUE ~ as.character(arCOGcode)))
+
 
 ########## VISUALIZATION ###############
 # funcat visualization

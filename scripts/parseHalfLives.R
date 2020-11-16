@@ -27,7 +27,7 @@ hldf = read_delim(file="data/E-MEXP-1088-processed-data-1369116981.txt",
 # seems like there are two fields corresponding to hl
 # parsing them, ND to NA and negative to NA
 hl = hldf %>%
-  select(`Reporter REF`, `GenePix:half-life (min)`, `GenePix:half-life (min)_1`)
+  dplyr::select(`Reporter REF`, `GenePix:half-life (min)`, `GenePix:half-life (min)_1`)
 names(hl) = c("ref", "HL1", "HL2")
 
 hl = hl %>%
@@ -49,7 +49,7 @@ hl$mean = rowMeans(hl[,2:3])
 hl = hl %>%
   mutate(ref = str_replace(string = ref, pattern = "for.*$|_.*$", replacement = ""),
          ref = str_replace(string = ref, pattern = "for.*$|_.*$", replacement = "")) %>% 
-  select(ref, mean) %>% 
+  dplyr::select(ref, mean) %>% 
   group_by(ref) %>% 
   summarise(mean = mean(mean))
 
@@ -72,7 +72,7 @@ hl = hl %>%
 # for those cases, I will take the mean half life
 halfLives = left_join(dictR1, hl, by = c("R1locus_tag" = "ref")) %>% 
   drop_na() %>%
-  select(locus_tag = pfeiLocus_tag, mean) %>% 
+  dplyr::select(locus_tag = pfeiLocus_tag, mean) %>% 
   group_by(locus_tag) %>% 
   summarise(HL = mean(mean)) %>% 
   ungroup()

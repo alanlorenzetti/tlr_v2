@@ -25,30 +25,30 @@ rowSes = function(M){
 # reading and parsing totalrna tpm
 totrnatpm=read_delim("data/tableTpmTotalRNA23.tsv",delim="\t")
 totrnatpm["mean_abundance_rna_total_TP1"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-1")) %>% rowMeans()
+  dplyr::select(matches("total-RNA-[1-3]-1")) %>% rowMeans()
 totrnatpm["mean_abundance_rna_total_TP2"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-2")) %>% rowMeans()
+  dplyr::select(matches("total-RNA-[1-3]-2")) %>% rowMeans()
 totrnatpm["mean_abundance_rna_total_TP3"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-3")) %>% rowMeans()
+  dplyr::select(matches("total-RNA-[1-3]-3")) %>% rowMeans()
 totrnatpm["mean_abundance_rna_total_TP4"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-4")) %>% rowMeans()
+  dplyr::select(matches("total-RNA-[1-3]-4")) %>% rowMeans()
 
 totrnatpm["se_abundance_rna_total_TP1"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-1")) %>% rowSes()
+  dplyr::select(matches("total-RNA-[1-3]-1")) %>% rowSes()
 totrnatpm["se_abundance_rna_total_TP2"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-2")) %>% rowSes()
+  dplyr::select(matches("total-RNA-[1-3]-2")) %>% rowSes()
 totrnatpm["se_abundance_rna_total_TP3"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-3")) %>% rowSes()
+  dplyr::select(matches("total-RNA-[1-3]-3")) %>% rowSes()
 totrnatpm["se_abundance_rna_total_TP4"] = totrnatpm %>%
-  select(matches("total-RNA-[1-3]-4")) %>% rowSes()
+  dplyr::select(matches("total-RNA-[1-3]-4")) %>% rowSes()
 
 totrnatpm = totrnatpm %>%
-  select(target_id, contains("abundance")) %>% 
+  dplyr::select(target_id, contains("abundance")) %>% 
   mutate(locus_tag = sub("\\|.*$", "", target_id)) %>% 
-  select(-target_id)
+  dplyr::select(-target_id)
 
 totrnatpmlong = totrnatpm %>%
-  select(locus_tag, contains("abundance")) %>% 
+  dplyr::select(locus_tag, contains("abundance")) %>% 
   pivot_longer(cols = contains("abundance"),
                names_to = c("measure", "timepoint"),
                names_pattern = "^(.*)?_.*_(.*)$",
@@ -62,30 +62,30 @@ totrnatpmlong = totrnatpm %>%
 # reading and parsing riboseq tpm
 ribornatpm=read_delim("data/tableTpmRiboSeqTrim15.tsv",delim="\t")
 ribornatpm["mean_abundance_rna_ribofraction_TP1"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-1")) %>% rowMeans()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-1")) %>% rowMeans()
 ribornatpm["mean_abundance_rna_ribofraction_TP2"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-2")) %>% rowMeans()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-2")) %>% rowMeans()
 ribornatpm["mean_abundance_rna_ribofraction_TP3"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-3")) %>% rowMeans()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-3")) %>% rowMeans()
 ribornatpm["mean_abundance_rna_ribofraction_TP4"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-4")) %>% rowMeans()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-4")) %>% rowMeans()
 
 ribornatpm["se_abundance_rna_ribofraction_TP1"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-1")) %>% rowSes()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-1")) %>% rowSes()
 ribornatpm["se_abundance_rna_ribofraction_TP2"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-2")) %>% rowSes()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-2")) %>% rowSes()
 ribornatpm["se_abundance_rna_ribofraction_TP3"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-3")) %>% rowSes()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-3")) %>% rowSes()
 ribornatpm["se_abundance_rna_ribofraction_TP4"] = ribornatpm %>%
-  select(matches("ribosomal_RNA_[1-3]-4")) %>% rowSes()
+  dplyr::select(matches("ribosomal_RNA_[1-3]-4")) %>% rowSes()
 
 ribornatpm = ribornatpm %>%
-  select(target_id, contains("abundance")) %>% 
+  dplyr::select(target_id, contains("abundance")) %>% 
   mutate(locus_tag = sub("\\|.*$", "", target_id)) %>% 
-  select(-target_id)
+  dplyr::select(-target_id)
 
 ribornatpmlong = ribornatpm %>%
-  select(locus_tag, contains("abundance")) %>% 
+  dplyr::select(locus_tag, contains("abundance")) %>% 
   pivot_longer(cols = contains("abundance"),
                names_to = c("measure", "timepoint"),
                names_pattern = "^(.*)?_.*_(.*)$",

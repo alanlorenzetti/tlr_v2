@@ -81,7 +81,7 @@ spectroLong = spectroLong %>%
 # and furthermore to unify it with
 # RNA-Seq data
 spectroWide = spectroLong %>% 
-  select(-nruns) %>% 
+  dplyr::select(-nruns) %>% 
   pivot_wider(names_from = c("libType", "timepoint"),
               names_sep = "_",
               values_from = c("mean_abundance", "se_abundance"))
@@ -97,7 +97,7 @@ spectroWide = left_join(spectroWide, dictProd, by = c("locus_tag" = "query_id"))
 remove = spectroWide$locus_tag[is.na(spectroWide$subject_id) %>% which()]
 spectroWide = spectroWide[!(spectroWide$locus_tag %in% remove),] %>% 
   mutate(locus_tag = subject_id) %>% 
-  select(-subject_id, -product.y)
+  dplyr::select(-subject_id, -product.y)
 
 # exploratory plots #####
 # plotting densities
@@ -117,6 +117,6 @@ spectroWide = spectroWide[!(spectroWide$locus_tag %in% remove),] %>%
 #         col = colfunct)
 # 
 # # timepoint grouping
-# Heatmap(spectroWide %>% select(-locus_tag, -contains("se")) %>%
+# Heatmap(spectroWide %>% dplyr::select(-locus_tag, -contains("se")) %>%
 #           drop_na() %>% as.matrix() %>% log10(),
 #         col = colfunct)

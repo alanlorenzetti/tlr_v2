@@ -21,5 +21,5 @@ strand(asrnas) = invertStrand(strand(asrnas))
 # checking intersections
 geneswasrnas = subsetByOverlaps(genes, asrnas, ignore.strand=F) %>%
   as_tibble() %>%
-  select(locus_tag) %>% 
+  dplyr::select(locus_tag) %>% 
   mutate(asRNA = "yes")

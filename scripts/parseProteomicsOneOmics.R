@@ -21,7 +21,7 @@ borderlinezero = 0.25
 
 # loading files #####
 oneomics = read_xlsx("data/20200729_HL_VNGcplte_3BRs_RTCal_heatmap_0conf_0reproducibility_all2070proteins_s.xlsx") %>% 
-  select(-secondary_name)
+  dplyr::select(-secondary_name)
 
 # parsing colnames
 colnames(oneomics) = colnames(oneomics)
@@ -55,7 +55,7 @@ oneomicsLong = oneomics %>%
 # filtering out attributes that are not
 # going to be used anymore
 oneomicsWide = oneomics %>% 
-  select(locus_tag, contains("lfc"), contains("padj"))
+  dplyr::select(locus_tag, contains("lfc"), contains("padj"))
 
 colnames(oneomicsWide)[-1] = sub("lfc_", "mean_lfc_protein_lysate_", colnames(oneomicsWide)[-1])
 colnames(oneomicsWide)[-1] = sub("padj_", "mean_padj_protein_lysate_", colnames(oneomicsWide)[-1])
@@ -70,7 +70,7 @@ oneomicsWide = left_join(oneomicsWide, dictProd, by = c("locus_tag" = "query_id"
 remove = oneomicsWide$locus_tag[is.na(oneomicsWide$subject_id) %>% which()]
 oneomicsWide = oneomicsWide[!(oneomicsWide$locus_tag %in% remove),] %>% 
   mutate(locus_tag = subject_id) %>% 
-  select(-subject_id, -product.y)
+  dplyr::select(-subject_id, -product.y)
   
 # for retrocompatibility reasons
 # I will recreated the object names tpivstp1
@@ -79,7 +79,7 @@ oneomicsWide = oneomicsWide[!(oneomicsWide$locus_tag %in% remove),] %>%
 tpivstp1 = list()
 for(i in paste0("TP", 2:4)){
   tpivstp1[[i]] = oneomicsWide %>% 
-    select(locus_tag,
+    dplyr::select(locus_tag,
            matches(i)) %>% 
     rename_with(.fn = ~ str_replace(string = .x, pattern = "_TP.*$", replacement = ""),
                 .cols = -locus_tag) %>% 
@@ -98,4 +98,4 @@ for(i in paste0("TP", 2:4)){
 #   facet_grid(~ type, scales = "free_x")
 # 
 # # plotting heatmap
-# Heatmap(oneomics %>% select(contains("lfc")) %>% as.matrix())
+# Heatmap(oneomics %>% dplyr::select(contains("lfc")) %>% as.matrix())

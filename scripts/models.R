@@ -49,7 +49,7 @@ for(i in 2:4 %>% as.character()){
   alldfs[[paste0("TP",i)]] = inner_join(tpivstp1[[paste0("TP",i)]],
                                         unifiedFin[[paste0("TP",i)]],
                                         by = c("locus_tag" = "locus_tag")) %>% 
-    select(locus_tag,
+    dplyr::select(locus_tag,
            matches("lfc"),
            matches("sig"),
            matches("border")) %>%
@@ -65,7 +65,7 @@ for(i in 2:4 %>% as.character()){
   # so I don't see a reason to be concerned about adjusting significance
   # normalizing lfc values
   quantileNorm[[paste0("TP",i)]] = alldfs[[paste0("TP",i)]] %>%
-    select(mRNA, RPF, protein) %>%
+    dplyr::select(mRNA, RPF, protein) %>%
     as.matrix() %>% 
     normalize.quantiles() %>% 
     as_tibble()
@@ -75,7 +75,7 @@ for(i in 2:4 %>% as.character()){
   
   # normalizing standard errors
   quantileNorm[[paste0("TP",i)]] = alldfs[[paste0("TP",i)]] %>%
-    select(lfcse_mRNA, lfcse_RPF) %>%
+    dplyr::select(lfcse_mRNA, lfcse_RPF) %>%
     as.matrix() %>% 
     normalize.quantiles() %>% 
     as_tibble()
@@ -281,9 +281,9 @@ plotLM = function(df, type, xLim, yLim){
   if(x == "RPF"){var2 = "sigribo"}
   
   varName1 = df %>%
-    select(starts_with(var1)) %>% names() %>% as.symbol()
+    dplyr::select(starts_with(var1)) %>% names() %>% as.symbol()
   varName2 = df %>%
-    select(starts_with(var2)) %>% names() %>% as.symbol()
+    dplyr::select(starts_with(var2)) %>% names() %>% as.symbol()
   colsymb = color %>% as.symbol()
   dfSig = df %>% filter((!!varName1 == "yes" & !!varName2 == "yes") & (!!colsymb == "Q1" | !!colsymb == "Q3"))
 #  dfNonSig =  df %>% filter(!!varName2 == "no")
@@ -296,7 +296,7 @@ plotLM = function(df, type, xLim, yLim){
   p = list() ; pvaltext = list()
   grob = list() ; grobY = 0.92
   
-  quadsItSummy = dfSig %>% select(!!var) %>% table()
+  quadsItSummy = dfSig %>% dplyr::select(!!var) %>% table()
   quadsIt = names(quadsItSummy[quadsItSummy > 1])
   quadsIt = quadsIt[quadsIt %in% paste0("Q", c(1,3))]
   

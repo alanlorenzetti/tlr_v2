@@ -6,6 +6,9 @@
 # coming from ChIP-seq.ggb file
 # provided by rvencio
 
+# loading libs #####
+source("scripts/loadingLibs.R")
+
 # setting up promoter regions from CDS start #####
 upstream = 150
 downstream = 150

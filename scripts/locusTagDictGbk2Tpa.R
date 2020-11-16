@@ -129,7 +129,7 @@ if(!file.exists("data/res2.RData")){
 # locus_tag cols
 resFil = res %>%
   filter(perc_identity >= 98) %>% 
-  select(query_id, subject_id) %>% 
+  dplyr::select(query_id, subject_id) %>% 
   ungroup()
 
 # resFil will be transformed further
@@ -137,7 +137,7 @@ resFil = res %>%
 # following step
 # it is going to be used by parseHalfLives.R
 res2Fil = res2 %>% filter(perc_identity >= 98) %>% 
-  select(query_id, subject_id) %>% 
+  dplyr::select(query_id, subject_id) %>% 
   mutate(query_id = sub("OE_", "OE", query_id)) %>% 
   ungroup()
 
@@ -163,10 +163,10 @@ pfei = rtracklayer::import(pfeiFile) %>% as_tibble()
 pfeiGenes = pfei %>% filter(type == "gene" | type == "pseudogene")
 pfeiCDS = pfei %>%
   filter(type == "CDS") %>% 
-  select(Parent, product) %>% 
+  dplyr::select(Parent, product) %>% 
   mutate(Parent = as.character(Parent))
 pfeiGenes = left_join(pfeiGenes, pfeiCDS, by = c("ID" = "Parent")) %>% 
-  select(locus_tag, product.y)
+  dplyr::select(locus_tag, product.y)
 
 # unifying products with dict
 dictProd = left_join(x=dict, y=pfeiGenes, by=c("subject_id" = "locus_tag"))
