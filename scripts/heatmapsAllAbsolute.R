@@ -297,12 +297,12 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  row_names_side = "right",
                  show_row_names = F,
                  row_names_gp = gpar(fontsize = 6),
-#                 row_order = hmaFuncat %>% dplyr::arrange(GCdev) %>% select(locus_tag) %>% unlist(use.names = F),
+                 row_order = hmaFuncat %>% dplyr::arrange(GCdev) %>% select(locus_tag) %>% unlist(use.names = F),
                  column_order = colnames(hmaM[,1:4]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "Protein",
                  left_annotation = row_ha,
-                 row_split = factor(hmaFuncat$arCOG),
+#                 row_split = factor(hmaFuncat$arCOG),
                  #row_split = factor(hmaFuncat$lsmSense),
                  #row_split = factor(hmaFuncat$utrSize),
                  #row_split = factor(hmaFuncat$ChIPSeq_tfbD),
@@ -403,13 +403,12 @@ draw(htComplete,
      annotation_legend_list = heatLegs,
      main_heatmap = "Protein")
 
-
-# saving objx
-hma %>%
-  as.data.frame() %>%
-  write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/dataMatrix.xlsx")
-
-hmaFuncat %>%
-  select(-starts_with("mean")) %>%
-  as.data.frame() %>%
-  write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/funcatMatrix.xlsx")
+# # saving objx
+# hma %>%
+#   as.data.frame() %>%
+#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/dataMatrix.xlsx")
+# 
+# hmaFuncat %>%
+#   select(-starts_with("mean")) %>%
+#   as.data.frame() %>%
+#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/funcatMatrix.xlsx")

@@ -4,7 +4,7 @@
 # this script will take deAlmeida et al. 2019
 # annotation of antisense RNAs and find what
 # genes of pfeiffer et al. 2019 intersect
-# with them, # this is part of functional
+# with them. this is part of functional
 # categorization step
 
 # loading libs ####
@@ -21,5 +21,5 @@ strand(asrnas) = invertStrand(strand(asrnas))
 # checking intersections
 geneswasrnas = subsetByOverlaps(genes, asrnas, ignore.strand=F) %>%
   as_tibble() %>%
-  dplyr::select(locus_tag) %>% 
+  dplyr::select(locus_tag) %>%
   mutate(asRNA = "yes")
