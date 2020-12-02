@@ -17,6 +17,7 @@ hma = abund %>%
   dplyr::select(locus_tag,
                 starts_with("mean_abundance_protein_lysate"),
                 starts_with("mean_abundance_rna_total"),
+                starts_with("mean_abundance_rna_as"),
                 starts_with("mean_abundance_rna_ribofraction")) %>% 
   dplyr::select(locus_tag,
                 ends_with("TP1"),
@@ -61,6 +62,7 @@ rownames(hmaM) = hma$locus_tag
 # reordering cols
 cols = paste0(c(rep("mean_abundance_protein_lysate", 4),
                 rep("mean_abundance_rna_total", 4),
+                rep("mean_abundance_rna_as", 4),
                 rep("mean_abundance_rna_ribofraction", 4)),
               rep(paste0("_TP", 1:4), 3))
 
@@ -297,12 +299,12 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  row_names_side = "right",
                  show_row_names = F,
                  row_names_gp = gpar(fontsize = 6),
-                 row_order = hmaFuncat %>% dplyr::arrange(GCdev) %>% select(locus_tag) %>% unlist(use.names = F),
+#                 row_order = hmaFuncat %>% dplyr::arrange(GCdev) %>% select(locus_tag) %>% unlist(use.names = F),
                  column_order = colnames(hmaM[,1:4]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "Protein",
                  left_annotation = row_ha,
-#                 row_split = factor(hmaFuncat$arCOG),
+                 row_split = factor(hmaFuncat$arCOG),
                  #row_split = factor(hmaFuncat$lsmSense),
                  #row_split = factor(hmaFuncat$utrSize),
                  #row_split = factor(hmaFuncat$ChIPSeq_tfbD),
@@ -335,15 +337,35 @@ htmRNA = Heatmap(log10(hmaM[,5:8]),
                    border = T)
 )
 
-# plotting heatmap for RPF abundance #####
-htRPF = Heatmap(log10(hmaM[,9:12]),
-                 name = "RPF",
+# plotting heatmap for asrna abundance ####
+htasRNA = Heatmap(log10(hmaM[,9:12]),
+                 name = "asRNA",
                  col = colors,
                  show_heatmap_legend = F,
                  row_names_side = "right",
                  show_row_names = F,
                  row_names_gp = gpar(fontsize = 6),
                  column_order = colnames(hmaM[,9:12]),
+                 column_labels = c("TP1", "TP2", "TP3", "TP4"),
+                 column_title = "asRNA",
+                 cluster_row_slices = F,
+                 row_title = NULL,
+                 border = T,
+                 heatmap_legend_param = list(
+                   title = "log10(Abund.)",
+                   at = c(0, 3, 6),
+                   border = T)
+)
+
+# plotting heatmap for RPF abundance #####
+htRPF = Heatmap(log10(hmaM[,13:16]),
+                 name = "RPF",
+                 col = colors,
+                 show_heatmap_legend = F,
+                 row_names_side = "right",
+                 show_row_names = F,
+                 row_names_gp = gpar(fontsize = 6),
+                 column_order = colnames(hmaM[,13:16]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "RPF",
                  cluster_row_slices = F,
@@ -398,7 +420,7 @@ htRO = Heatmap(log2(hmaRO),
                  border = T))
 
 # unifying heatmaps ####
-htComplete = htProt + htmRNA + htRPF + htTE + htRO
+htComplete = htProt + htmRNA + htasRNA + htRPF + htTE + htRO
 draw(htComplete,
      annotation_legend_list = heatLegs,
      main_heatmap = "Protein")

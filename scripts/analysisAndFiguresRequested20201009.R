@@ -489,8 +489,8 @@ f=30 # final
 # starting loop
 while(f <= length(allLocusTags)){
   
-  if(!dir.exists("plots/abundance")){
-    dir.create("plots/abundance")
+  if(!dir.exists("plots/abundance_v2")){
+    dir.create("plots/abundance_v2")
   }
   
   protSet = allLocusTags[i:f]
@@ -498,7 +498,8 @@ while(f <= length(allLocusTags)){
   # raw variables
   cols = c("protein_lysate" = "#E15759",
            "rna_ribofraction" = "#59A14F",
-           "rna_total" = "#4E79A7")
+           "rna_total" = "#4E79A7",
+           "rna_as" = "#B07AA1")
   breaks = 10^(-10:10)
   minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
   
@@ -520,11 +521,11 @@ while(f <= length(allLocusTags)){
     annotation_logticks(sides = "l") +
     scale_color_manual(name = "Lib. Type",
                        values = cols,
-                       breaks = c("protein_lysate", "rna_ribofraction", "rna_total"),
-                       labels = c("Protein", "RPFs", "mRNA"))
+                       breaks = c("protein_lysate", "rna_ribofraction", "rna_total", "rna_as"),
+                       labels = c("Protein", "RPFs", "mRNA", "asRNA"))
   
   # saving
-  filename = paste0("plots/abundance/71_", i, "-", f, "abundTrajectories_tpwise.png")
+  filename = paste0("plots/abundance_v2/71_", allLocusTags[i], "-", allLocusTags[f], "_abundTrajectories_tpwise.png")
   ggsave(filename = filename,
          plot = abundTrajectories,
          units = "in",
@@ -546,6 +547,7 @@ while(f <= length(allLocusTags)){
     filter(libtype != "protein_lysate") %>% 
     filter(libtype != "rna_ribofraction") %>% 
     filter(libtype != "rna_total") %>% 
+    filter(libtype != "rna_as") %>% 
     ggplot(aes(x = timepoint,
                y = log2(mean),
                color = libtype,

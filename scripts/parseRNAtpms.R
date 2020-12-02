@@ -1,4 +1,4 @@
-# alorenzetti 202008
+# alorenzetti 202012
 
 # description #####
 # this script will parse
@@ -23,7 +23,7 @@ rowSes = function(M){
 # to manually compute TPMs, follow the instructions on the following
 # page: https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/
 # reading and parsing totalrna tpm
-totrnatpm=read_delim("data/tableTpmTotalRNA23.tsv",delim="\t")
+totrnatpm=read_delim("data/tableTpmTotalRNA23_v2.tsv",delim="\t")
 totrnatpm["mean_abundance_rna_total_TP1"] = totrnatpm %>%
   dplyr::select(matches("total-RNA-[1-3]-1")) %>% rowMeans()
 totrnatpm["mean_abundance_rna_total_TP2"] = totrnatpm %>%
@@ -47,17 +47,33 @@ totrnatpm = totrnatpm %>%
   mutate(locus_tag = sub("\\|.*$", "", target_id)) %>% 
   dplyr::select(-target_id)
 
+# copying pseudoantisense RNA quantification to
+# another object and then removing
+# them from gene quantification dataset
+astotrnatpm = totrnatpm %>%
+  filter(str_detect(locus_tag, "pseudoAS$"))
+
+totrnatpm = totrnatpm %>%
+  dplyr::filter(str_detect(locus_tag, "pseudoAS$", negate = T))
+
+# adjusting colnames and locus_tags of pseudoantisense dataset
+astotrnatpm = astotrnatpm %>% 
+  dplyr::rename_with(.cols = contains("rna_total"),
+                     .fn = ~ str_replace(.x, "rna_total", "rna_as")) %>% 
+  mutate(locus_tag = str_replace(locus_tag, "_pseudoAS", ""))
+
 totrnatpmlong = totrnatpm %>%
-  dplyr::select(locus_tag, contains("abundance")) %>% 
+  left_join(., astotrnatpm, by = "locus_tag") %>% 
+  dplyr::select(locus_tag, contains("mean")) %>% 
   pivot_longer(cols = contains("abundance"),
-               names_to = c("measure", "timepoint"),
-               names_pattern = "^(.*)?_.*_(.*)$",
+               names_to = c("measure", "libtype", "timepoint"),
+               names_pattern = "^(.*)?_(.*)_(.*)$",
                values_to = "abundance")
 
 # plotting abundance distribution for each timepoint
 # ggplot(totrnatpmlong, aes(x=log10(abundance), color = timepoint)) +
 #   geom_density() +
-#   facet_grid(~ measure)
+#   facet_grid(~ libtype)
 
 # reading and parsing riboseq tpm
 ribornatpm=read_delim("data/tableTpmRiboSeqTrim15.tsv",delim="\t")
@@ -96,6 +112,8 @@ ribornatpmlong = ribornatpm %>%
 #   geom_density() +
 #   facet_grid(~ measure)
 
-# merging totrna and riborna tpms
-tpm = left_join(totrnatpm, ribornatpm, by = "locus_tag") %>% 
+# merging totrna, asrna, and riborna tpms
+tpm = left_join(totrnatpm, astotrnatpm, by = "locus_tag") %>% 
   relocate(locus_tag)
+
+tpm = left_join(tpm, ribornatpm, by = "locus_tag")

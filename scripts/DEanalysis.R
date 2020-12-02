@@ -77,8 +77,9 @@ volcaPlot = function(allTable, sigTable){
 # loading raw counts ################################################ 
 # to manually compute TPMs, follow the instructions on the following
 # page: https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/
-# reading totalrna counts
-totrna=read_delim("data/tableEstCountsTotalRNA23.tsv",delim="\t")
+# reading totalrna counts but removing pseudAS quantification from dataset
+totrna=read_delim("data/tableEstCountsTotalRNA23_v2.tsv",delim="\t") %>% 
+  dplyr::filter(str_detect(target_id, "_pseudoAS$", negate = T))
 
 # reading riboseq counts
 riborna=read_delim("data/tableEstCountsRiboSeqTrim15.tsv",delim="\t")
