@@ -117,3 +117,56 @@ tpm = left_join(totrnatpm, astotrnatpm, by = "locus_tag") %>%
   relocate(locus_tag)
 
 tpm = left_join(tpm, ribornatpm, by = "locus_tag")
+
+# regarding gvp1a cluster: I will change
+# the locus_tags to match those of gvp1b
+# gvp1a e gvp1b are copies
+# gvp2 = paste0("VNG_",
+#               c("6226a",
+#                 "6229G",
+#                 "6230G",
+#                 "6232G",
+#                 "6233G",
+#                 "6235G",
+#                 "6236G",
+#                 "6237G",
+#                 "6239G",
+#                 "6240G",
+#                 "6241G",
+#                 "6242G",
+#                 "6244G",
+#                 "6246G"))
+
+gvp1a = paste0("VNG_",
+               c("7015",
+                 "7016",
+                 "7017",
+                 "7018",
+                 "7019",
+                 "7020",
+                 "7021",
+                 "7022",
+                 "7023",
+                 "7024",
+                 "7025",
+                 "7026",
+                 "7027",
+                 "7028"))
+
+gvp1b = paste0("VNG_",
+               c("6019G",
+                 "6020G",
+                 "6021G",
+                 "6022G",
+                 "6023G",
+                 "6024G",
+                 "6025G",
+                 "6026G",
+                 "6027G",
+                 "6028G",
+                 "6029G",
+                 "6031G",
+                 "6032G",
+                 "6033G"))
+
+tpm$locus_tag[grepl(gvp1a %>% paste0(collapse = "|"), tpm$locus_tag)] = gvp1b

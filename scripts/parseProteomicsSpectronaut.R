@@ -17,8 +17,12 @@ file2 = "data/Halo_Ribo_analysis_HaloIonLibraryVNG_merged_final_2018-04-07_SW100
 spectro1 = read_delim(file = file, delim = "\t")
 spectro2 = read_delim(file = file2, delim = "\t")
 
+# in this version I am going to use
+# only the lysate fraction
+spectro = spectro1
+
 # full join of both dataframes
-spectro = full_join(spectro1, spectro2, by = "PG.ProteinAccessions")
+#spectro = full_join(spectro1, spectro2, by = "PG.ProteinAccessions")
 
 # wrangling ####
 # adjusting colnames
@@ -27,12 +31,11 @@ colnames(spectro)[-1] = sub("^.*_?(BR[1-3])(TP[1-4]).*_.*_.*_(r0[1-3]).*$",
                             "\\2_\\1_\\3",
                             colnames(spectro)[-1],
                             perl = T)
-colnames(spectro)[-1] = paste0(c(rep("lysate_", 36),
-                               rep("ribo_", 36)),
+colnames(spectro)[-1] = paste0(rep("lysate_", 36),
                                colnames(spectro)[-1])
 colnames(spectro)[1] = "locus_tag"
 
-# removing first entry line and pivoting
+# removing first entry line
 spectro = spectro[-1, ]
 
 # warnings will be thrown due to
@@ -40,6 +43,87 @@ spectro = spectro[-1, ]
 spectro = spectro %>%
   mutate_at(.vars = vars(contains("BR")),
             .funs = as.numeric)
+
+# selection of entries ####
+# we have to filter the table due to the existence
+# of peptides matching more than one protein
+# our simplification is:
+# the members of a protein group can exist in
+# the form of an individual observation
+# if only one member of a protein group exists individually
+# protein group values and individual protein values
+# are tallied up;
+# if more than two members of a protein group exist individually
+# the protein group is discarded
+# if no member of a protein group exists individually
+# the protein group is kept (first locus_tag is preserved)
+
+# finding out solos and protein groups
+solo = spectro %>% 
+  filter(!str_detect(locus_tag, ","))
+pg = spectro %>% 
+  filter(str_detect(locus_tag, ","))
+
+ex = NULL
+pgvspg = NULL
+for(i in 1:dim(pg)[1]){
+  curline = pg$locus_tag[i] %>% 
+    str_split(pattern = ",") %>% 
+    unlist()
+  for(j in 1:length(curline)){
+    ex[j] = curline[j] %in% solo$locus_tag
+    names(ex)[j] = curline[j]
+  }
+  if(sum(ex) == 0){pass = "pass0"; repres = names(ex)[1]}
+  if(sum(ex) == 1){pass = "pass1"; repres = names(which(ex == TRUE))}
+  if(sum(ex) > 1){pass = "fail"; repres = NA_character_} 
+  
+  y = 1:dim(pg)[1]
+  for(k in y[-i]){
+    curpg = pg$locus_tag[k] %>% 
+      str_split(pattern = ",") %>% 
+      unlist()
+    pgvspg = c(pgvspg, sum(names(ex) %in% curpg))
+  }
+  
+  npg = sum(pgvspg > 0)
+  if(sum(pgvspg) == 0){passpg = "pass"}
+  if(sum(pgvspg) > 0){passpg = paste0("fail", npg)}
+  
+  if((pass == "pass0" | pass == "pass1") & passpg == "pass"){
+    pg$locus_tag[i] = repres
+  }
+
+  ex = NULL
+  pgvspg = NULL
+}
+
+# filtering out those protein groups
+# that failed our simplification
+pg = pg %>% 
+  filter(!str_detect(locus_tag, ","))
+
+# VNG5030G (GvpA) and VNG5033G (GvpN) were manually included
+# since they are protein groups contained within
+# another protein group but satisfy the nonambiguity criterion
+# e.g. the protein groups come from isoforms of GvpA1a, GvpA1b, and GvpA2
+gvpAN = spectro %>% 
+  filter(str_detect(string = locus_tag, pattern = "^VNG5030G|^VNG5033G")) %>% 
+  mutate(locus_tag = str_replace(string = locus_tag, pattern = ",.*", replacement = ""))
+
+# unifying individual proteins to
+# simplified protein groups
+soloPlusSPG = bind_rows(solo, pg, gvpAN) %>% 
+  arrange(locus_tag) %>% 
+  group_by(locus_tag) %>%
+  dplyr::summarise(across(.cols = starts_with("lysate"),
+                          .fns = ~ sum(.x, na.rm = T))) %>% 
+  ungroup() %>% 
+  dplyr::mutate(across(.cols = starts_with("lysate"),
+                       .fns = ~ case_when(.x == 0 ~ NA_real_,
+                                          TRUE ~ as.numeric(.x))))
+
+spectro = soloPlusSPG
 
 # pivoting data frame
 # we will take run means and annotate number of runs used
@@ -60,21 +144,6 @@ spectroLong = spectro %>%
   ungroup() %>% 
   filter(nruns >= 6)
 
-# at this moment, I will also remove #####
-# protein groups containing more than
-# one protein; but I should get back
-# to it later to develop an approach that keeps
-# only protein groups consisting of repetitions
-# peptides shared between distinct protein
-# will be ignored in the future
-# I was able to identify one of the protein
-# groups of one IS type (ISH2)
-# and I am keeping it
-spectroLong$locus_tag[grepl("VNG0210H", spectroLong$locus_tag)] = "VNG0210H"
-
-spectroLong = spectroLong %>% 
-  filter(str_detect(string = locus_tag, pattern = ",", negate = T))
-
 # using longer dataframe, I will
 # create a wider version to be able
 # to plot heat maps using ComplxHeatmaps
@@ -89,7 +158,7 @@ colnames(spectroWide)[-1] = sub("abundance_", "abundance_protein_", colnames(spe
 
 # adjusting locus_tags
 # according to dictProd
-# "VNG0212H"  "VNG0606G"  "VNG0779C"  "VNG0780H"  "VNG1585Cm"
+# "VNG0212H"  "VNG0606G"  "VNG0779C"  "VNG0780H"  "VNG1585Cm"  "VNG5138C"
 # don't have a matching sequence in pfeiLocusTag
 # those are going to be removed
 spectroWide = left_join(spectroWide, dictProd, by = c("locus_tag" = "query_id"))

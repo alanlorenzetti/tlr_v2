@@ -314,7 +314,7 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  heatmap_legend_param = list(
                    title = "log10(Abund.)",
                    at = c(0, 3, 6),
-                   border = T)
+                   border = "black")
 )
 
 # plotting heatmap for mrna abundance #####
@@ -334,7 +334,7 @@ htmRNA = Heatmap(log10(hmaM[,5:8]),
                  heatmap_legend_param = list(
                    title = "log10(Abund.)",
                    at = c(0, 3, 6),
-                   border = T)
+                   border = "black")
 )
 
 # plotting heatmap for asrna abundance ####
@@ -354,7 +354,7 @@ htasRNA = Heatmap(log10(hmaM[,9:12]),
                  heatmap_legend_param = list(
                    title = "log10(Abund.)",
                    at = c(0, 3, 6),
-                   border = T)
+                   border = "black")
 )
 
 # plotting heatmap for RPF abundance #####
@@ -374,7 +374,7 @@ htRPF = Heatmap(log10(hmaM[,13:16]),
                  heatmap_legend_param = list(
                    title = "log10(Abund.)",
                    at = c(0, 3, 6),
-                   border = T)
+                   border = "black")
 )
 
 # plotting heatmap for TE and RO #####
@@ -398,7 +398,7 @@ htTE = Heatmap(log2(hmaTE),
                heatmap_legend_param = list(
                  title = "log2(Ratio)",
                  at = c(-8, 0, 8),
-                 border = T))
+                 border = "black"))
 
 # RO
 htRO = Heatmap(log2(hmaRO),
@@ -417,7 +417,7 @@ htRO = Heatmap(log2(hmaRO),
                heatmap_legend_param = list(
                  title = "log2(Ratio)",
                  at = c(-8, 0, 8),
-                 border = T))
+                 border = "black"))
 
 # unifying heatmaps ####
 htComplete = htProt + htmRNA + htasRNA + htRPF + htTE + htRO
