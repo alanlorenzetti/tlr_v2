@@ -49,8 +49,8 @@ spectro = spectro %>%
 # of peptides matching more than one protein
 # our simplification is:
 # the members of a protein group can exist in
-# the form of an individual observation
-# if only one member of a protein group exists individually
+# the form of an individual observation.
+# if only one member of a protein group exists individually,
 # protein group values and individual protein values
 # are tallied up;
 # if more than two members of a protein group exist individually
@@ -189,3 +189,4 @@ spectroWide = spectroWide[!(spectroWide$locus_tag %in% remove),] %>%
 # Heatmap(spectroWide %>% dplyr::select(-locus_tag, -contains("se")) %>%
 #           drop_na() %>% as.matrix() %>% log10(),
 #         col = colfunct)
+

@@ -11,6 +11,10 @@ library(pacman)
 # devtools::install_github("https://github.com/drostlab/orthologr", build_vignettes = T)
 library(orthologr)
 
+# the following is not available at CRAN
+# library(devtools) ; install_github("allydunham/tblhelpr")
+library(tblhelpr)
+
 # required packages
 packs = c("BiocManager",
           "tidyverse",
@@ -45,7 +49,9 @@ packs = c("BiocManager",
           "scales",
           "ggridges",
           "openxlsx",
-          "mclust")
+          "mclust",
+          "purrr",
+          "svglite")
 
 # loading and installing missing packages
 p_load(char = packs)
@@ -55,4 +61,5 @@ theme_set(theme_bw())
 
 # loading tab10 palette
 tab10 = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`
+tab20 = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`
 seqblues = ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Blue$value

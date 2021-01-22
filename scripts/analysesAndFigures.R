@@ -145,36 +145,50 @@ abundNormLongFuncat %>%
 # no colorspace
 breaks = 10^(-10:10)
 minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
+
+othercols = c(ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Gray$value[c(1,5,15,20) %>% rev()],
+              ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Blue$value[c(1,5,15,20) %>% rev()],
+              ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Green$value[c(1,20)] %>% rev())
+reds = ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Red$value[c(1,5,15,20) %>% rev()]
+
+cols = c(othercols, reds)
+names(cols) = gvp1b
+
+labs = paste0(gvp1b, " ", gvp1bnames)
+names(labs) = gvp1b
+
 abundNormLongFuncat %>% 
   dplyr::select(-se) %>% 
-  filter(locus_tag %in% riboProts) %>%
+  filter(locus_tag %in% gvp1b) %>%
   filter(timepoint != "TP0") %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
   ggplot(aes(y = protein_lysate,
              x = rna_total,
              group = locus_tag,
-             color = timepoint)) +
+             color = locus_tag)) +
   geom_path(arrow = arrow(ends = "last",
                           type = "closed",
                           length = unit(0.1, "inches"),
                           angle = 20),
+            size = 1.25,
             alpha = 1,
-            show.legend = F) +
+            show.legend = T) +
 #  facet_wrap(~ lsmSense) +
   ylab("Protein Abundance") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F),
+                limits = (c(1,500000))) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F),
+                limits = (c(1,500000))) +
   annotation_logticks() +
-  scale_color_manual(values = c("TP1" = seqblues[5],
-                                "TP2" = seqblues[10],
-                                "TP3" = seqblues[15],
-                                "TP4" = seqblues[20]))
+  scale_color_manual("Locus tag",
+                     labels = labs,
+                     values = cols)
 
 # finding clusters using gaussian mixture model
 model = Mclust(data = data.frame(mrnaTP4 = abundNorm$mean_abundance_rna_total_TP4,

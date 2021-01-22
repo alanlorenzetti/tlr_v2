@@ -305,6 +305,7 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  column_title = "Protein",
                  left_annotation = row_ha,
                  row_split = factor(hmaFuncat$arCOG),
+                 #row_split = factor(hmaFuncat$asRNA),
                  #row_split = factor(hmaFuncat$lsmSense),
                  #row_split = factor(hmaFuncat$utrSize),
                  #row_split = factor(hmaFuncat$ChIPSeq_tfbD),
@@ -406,7 +407,7 @@ htRO = Heatmap(log2(hmaRO),
                col = colors2,
                show_heatmap_legend = F,
                row_names_side = "right",
-               show_row_names = F,
+               show_row_names = T,
                row_names_gp = gpar(fontsize = 6),
                column_order = colnames(hmaRO),
                column_labels = c("TP1", "TP2", "TP3", "TP4"),
@@ -425,12 +426,26 @@ draw(htComplete,
      annotation_legend_list = heatLegs,
      main_heatmap = "Protein")
 
-# # saving objx
+# # # saving objx
 # hma %>%
 #   as.data.frame() %>%
-#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/dataMatrix.xlsx")
-# 
+#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201217-reuniao-vencio/dataMatrix_v2.xlsx")
+# # 
 # hmaFuncat %>%
 #   select(-starts_with("mean")) %>%
 #   as.data.frame() %>%
-#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201110-reuniao-tie-vencio/funcatMatrix.xlsx")
+#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201217-reuniao-vencio/funcatMatrix_v2.xlsx")
+
+# saving non normalized dataset for rvencio
+# abund %>% 
+#   dplyr::select(locus_tag,
+#                 starts_with("mean_abundance_protein_lysate"),
+#                 starts_with("mean_abundance_rna_total"),
+#                 starts_with("mean_abundance_rna_as"),
+#                 starts_with("mean_abundance_rna_ribofraction")) %>% 
+#   dplyr::select(locus_tag,
+#                 ends_with("TP1"),
+#                 ends_with("TP2"),
+#                 ends_with("TP3"),
+#                 ends_with("TP4")) %>% 
+#   write.xlsx(., file = "~/gdrive/documentos/doutorado/20201217-reuniao-vencio/dataMatrix_v2_nonNorm.xlsx")

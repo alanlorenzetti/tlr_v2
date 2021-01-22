@@ -23,6 +23,7 @@ abundNormLongFuncat = abundNormLongFuncat %>%
 # protein abundance in function of mRNA ####
 # no colorspace  
 protvsmrna = abundNormLongFuncat %>% 
+  filter(timepoint != "TP0") %>% 
   dplyr::select(-se) %>% 
   pivot_wider(names_from = libtype,
               values_from = mean) %>% 
@@ -30,17 +31,20 @@ protvsmrna = abundNormLongFuncat %>%
              x = rna_total)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
   ylab("Protein Abundance") +
   xlab("mRNA Abundance") +
+  # ylab("Abundância de Proteínas") +
+  # xlab("Abundância de mRNAs") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks()
 
 # saving
@@ -56,16 +60,17 @@ slide1 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP2,
              x = mean_abundance_rna_total_TP1)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP2 vs. mRNA TP1")
 
@@ -74,16 +79,17 @@ slide2 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP3,
              x = mean_abundance_rna_total_TP2)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP3 vs. mRNA TP2")
 
@@ -92,16 +98,17 @@ slide3 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP4,
              x = mean_abundance_rna_total_TP3)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP4 vs. mRNA TP3")
 
@@ -126,17 +133,20 @@ proteinvsrpf = abundNormLongFuncat %>%
              x = rna_ribofraction)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
   ylab("Protein Abundance") +
   xlab("RPF Abundance") +
+  # ylab("Abundância de Proteínas") +
+  # xlab("Abundância de RPFs") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks()
 
 # saving
@@ -152,16 +162,17 @@ slide1 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP2,
              x = mean_abundance_rna_ribofraction_TP1)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("RPF Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP2 vs. RPF TP1")
 
@@ -170,16 +181,17 @@ slide2 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP3,
              x = mean_abundance_rna_ribofraction_TP2)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("RPF Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP3 vs. RPF TP2")
 
@@ -188,16 +200,17 @@ slide3 = abundNorm %>%
   ggplot(aes(y = mean_abundance_protein_lysate_TP4,
              x = mean_abundance_rna_ribofraction_TP3)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Protein Abundance") +
   xlab("RPF Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks() +
   ggtitle("Protein TP4 vs. RPF TP3")
 
@@ -222,17 +235,20 @@ rpfvsmrna = abundNormLongFuncat %>%
              x = rna_total)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
-  ylab("RPF Abundance") +
-  xlab("mRNA Abundance") +
+  # ylab("RPF Abundance") +
+  # xlab("mRNA Abundance") +
+  ylab("Abundância de RPFs") +
+  xlab("Abundância de mRNAs") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   scale_y_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   annotation_logticks()
 
 # saving
@@ -252,14 +268,15 @@ tcvsmrna = abundNormLongFuncat %>%
              x = rna_total)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
   ylab("Transcriptional Regulation") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
 #  scale_y_log10(breaks = breaks,
 #                minor_breaks = minor_breaks,
 #                labels = function(x) format(x, scientific = TRUE)) +
@@ -278,13 +295,14 @@ slide1 = abundNorm %>%
   ggplot(aes(y = log2(mean_abundance_protein_lysate_TP2 / mean_abundance_rna_total_TP1),
              x = mean_abundance_rna_total_TP1)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Transcriptional Regulation (log2)") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
 #  scale_y_log10(breaks = breaks,
 #                minor_breaks = minor_breaks,
 #                labels = function(x) format(x, scientific = TRUE)) +
@@ -296,13 +314,14 @@ slide2 = abundNorm %>%
   ggplot(aes(y = log2(mean_abundance_protein_lysate_TP3 / mean_abundance_rna_total_TP2),
              x = mean_abundance_rna_total_TP2)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Transcriptional Regulation (log2)") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
 #  scale_y_log10(breaks = breaks,
 #                minor_breaks = minor_breaks,
 #                labels = function(x) format(x, scientific = TRUE)) +
@@ -314,13 +333,14 @@ slide3 = abundNorm %>%
   ggplot(aes(y = log2(mean_abundance_protein_lysate_TP4 / mean_abundance_rna_total_TP3),
              x = mean_abundance_rna_total_TP3)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Transcriptional Regulation (log2)") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
 #  scale_y_log10(breaks = breaks,
 #                minor_breaks = minor_breaks,
 #                labels = function(x) format(x, scientific = TRUE)) +
@@ -348,14 +368,15 @@ tevsmrna = abundNormLongFuncat %>%
              x = rna_total)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
   ylab("Translational Efficiency (log2)") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
 #  scale_y_log10(breaks = breaks,
 #                minor_breaks = minor_breaks,
 #                labels = function(x) format(x, scientific = TRUE)) +
@@ -378,14 +399,15 @@ tlrvsmrna = abundNormLongFuncat %>%
              x = rna_total)) +
   #    geom_density2d() +
   geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   facet_wrap(~ timepoint) +
   ylab("Translational Regulation (log2)") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   #  scale_y_log10(breaks = breaks,
   #                minor_breaks = minor_breaks,
   #                labels = function(x) format(x, scientific = TRUE)) +
@@ -404,13 +426,14 @@ slide1 = abundNorm %>%
   ggplot(aes(y = log2((mean_abundance_protein_lysate_TP2 / mean_abundance_rna_total_TP1) / (mean_abundance_rna_ribofraction_TP1 / mean_abundance_rna_total_TP1)),
              x = mean_abundance_rna_total_TP1)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Translational Regulation (log2)") +
   xlab("mRNA Abundance") +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   #  scale_y_log10(breaks = breaks,
   #                minor_breaks = minor_breaks,
   #                labels = function(x) format(x, scientific = TRUE)) +
@@ -422,13 +445,14 @@ slide2 = abundNorm %>%
   ggplot(aes(y = log2((mean_abundance_protein_lysate_TP3 / mean_abundance_rna_total_TP2) / (mean_abundance_rna_ribofraction_TP2 / mean_abundance_rna_total_TP2)),
              x = mean_abundance_rna_total_TP2)) +
   geom_point(alpha = 0.25) + 
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
   stat_cor(method = "pearson") +
   ylab("Translational Regulation (log2)") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   #  scale_y_log10(breaks = breaks,
   #                minor_breaks = minor_breaks,
   #                labels = function(x) format(x, scientific = TRUE)) +
@@ -441,12 +465,13 @@ slide3 = abundNorm %>%
              x = mean_abundance_rna_total_TP3)) +
   geom_point(alpha = 0.25) + 
   geom_smooth(method = "lm") +
-  stat_cor(method = "pearson") +
+  stat_cor(method = "pearson",
+           color = tab10$value[1]) +
   ylab("Translational Regulation (log2)") +
   xlab("mRNA Abundance")  +
   scale_x_log10(breaks = breaks,
                 minor_breaks = minor_breaks,
-                labels = function(x) format(x, scientific = TRUE)) +
+                labels = function(x) format(x, scientific = F)) +
   #  scale_y_log10(breaks = breaks,
   #                minor_breaks = minor_breaks,
   #                labels = function(x) format(x, scientific = TRUE)) +

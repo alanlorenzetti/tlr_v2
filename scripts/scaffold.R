@@ -27,6 +27,8 @@ source("scripts/parseProteomicsOneOmics.R")
 source("scripts/parseRNAtpms.R")
 source("scripts/DEanalysis.R")
 
+source("scripts/exploratoryAnalysis.R") # exploratory analysis plots for dissertation
+
 source("scripts/models.R")
 source("scripts/proteinRegRules.R")
 source("scripts/timecourseAnalysis.R")
@@ -38,5 +40,6 @@ source("scripts/heatmapsAllRelativeChanges.R")
 source("scripts/heatmapsAllAbsolute.R")
 source("scripts/computeAnglesAndMag.R")
 source("scripts/analysesAndFigures.R")
-source("scripts/analysisAndFiguresRequested20201009.R")
+source("scripts/analysisAndFiguresRequested20201009.R") # correlation plots
+source("scripts/findPutativeRegulatedTx.R")
 #source("scripts/bepeReportFigures.R")
