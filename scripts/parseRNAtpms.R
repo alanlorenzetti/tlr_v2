@@ -23,16 +23,15 @@ rowSes = function(M){
 # to manually compute TPMs, follow the instructions on the following
 # page: https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/
 # reading and parsing totalrna tpm (version to be used in the exploratory analysis)
-totrnatpmraw=read_delim("data/tableTpmTotalRNA23_v2.tsv",delim="\t") %>% 
+totrnatpmraw=read_delim("data/tableTpmTotalRNA23_v3.tsv",delim="\t") %>% 
   select(-length,-eff_length) %>% 
   rename_with(.cols = -target_id,
               .fn = ~ str_replace(.x,
                                   "total-RNA-(.*)-(.*)_S.*$",
-                                  "lysate_TP\\2_BR\\1")) %>% 
-  filter(!str_detect(target_id, "_pseudoAS$"))
+                                  "lysate_TP\\2_BR\\1"))
 
 # version to be further used in all downstream analyses except exploratory analysis
-totrnatpm=read_delim("data/tableTpmTotalRNA23_v2.tsv",delim="\t")
+totrnatpm=read_delim("data/tableTpmTotalRNA23_v3.tsv",delim="\t")
 totrnatpm["mean_abundance_rna_total_TP1"] = totrnatpm %>%
   dplyr::select(matches("total-RNA-[1-3]-1")) %>% rowMeans()
 totrnatpm["mean_abundance_rna_total_TP2"] = totrnatpm %>%
@@ -56,23 +55,8 @@ totrnatpm = totrnatpm %>%
   mutate(locus_tag = sub("\\|.*$", "", target_id)) %>% 
   dplyr::select(-target_id)
 
-# copying pseudoantisense RNA quantification to
-# another object and then removing
-# them from gene quantification dataset
-astotrnatpm = totrnatpm %>%
-  filter(str_detect(locus_tag, "pseudoAS$"))
-
-totrnatpm = totrnatpm %>%
-  dplyr::filter(str_detect(locus_tag, "pseudoAS$", negate = T))
-
-# adjusting colnames and locus_tags of pseudoantisense dataset
-astotrnatpm = astotrnatpm %>% 
-  dplyr::rename_with(.cols = contains("rna_total"),
-                     .fn = ~ str_replace(.x, "rna_total", "rna_as")) %>% 
-  mutate(locus_tag = str_replace(locus_tag, "_pseudoAS", ""))
-
+# adjusting colnames
 totrnatpmlong = totrnatpm %>%
-  left_join(., astotrnatpm, by = "locus_tag") %>% 
   dplyr::select(locus_tag, contains("mean")) %>% 
   pivot_longer(cols = contains("abundance"),
                names_to = c("measure", "libtype", "timepoint"),
@@ -85,16 +69,15 @@ totrnatpmlong = totrnatpm %>%
 #   facet_grid(~ libtype)
 
 # reading and parsing riboseq tpm (version to be used in the exploratory analysis)
-ribornatpmraw = read_delim("data/tableTpmRiboSeqTrim15.tsv",delim="\t") %>% 
+ribornatpmraw = read_delim("data/tableTpmRiboSeqTrim15_v3.tsv",delim="\t") %>% 
   select(-length,-eff_length) %>% 
   rename_with(.cols = -target_id,
               .fn = ~ str_replace(.x,
                                   "ribosomal_RNA_(.*)-(.*)_S.*$",
-                                  "ribo_TP\\2_BR\\1")) %>% 
-  filter(!str_detect(target_id, "_pseudoAS$"))
+                                  "ribo_TP\\2_BR\\1"))
 
 # version to be further used in all downstream analyses except exploratory analysis
-ribornatpm=read_delim("data/tableTpmRiboSeqTrim15.tsv",delim="\t")
+ribornatpm=read_delim("data/tableTpmRiboSeqTrim15_v3.tsv",delim="\t")
 ribornatpm["mean_abundance_rna_ribofraction_TP1"] = ribornatpm %>%
   dplyr::select(matches("ribosomal_RNA_[1-3]-1")) %>% rowMeans()
 ribornatpm["mean_abundance_rna_ribofraction_TP2"] = ribornatpm %>%
@@ -130,11 +113,9 @@ ribornatpmlong = ribornatpm %>%
 #   geom_density() +
 #   facet_grid(~ measure)
 
-# merging totrna, asrna, and riborna tpms
-tpm = left_join(totrnatpm, astotrnatpm, by = "locus_tag") %>% 
-  relocate(locus_tag)
-
-tpm = left_join(tpm, ribornatpm, by = "locus_tag")
+# merging totrna, and riborna tpms
+tpm = left_join(totrnatpm, ribornatpm, by = "locus_tag") %>% 
+  relocate("locus_tag")
 
 # regarding gvp1a cluster: I will change
 # the locus_tags to match those of gvp1b

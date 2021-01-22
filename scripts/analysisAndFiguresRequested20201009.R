@@ -523,8 +523,7 @@ while(f <= length(allLocusTags)){
   # raw variables
   cols = c("protein_lysate" = "#E15759",
            "rna_ribofraction" = "#59A14F",
-           "rna_total" = "#4E79A7",
-           "rna_as" = "#B07AA1")
+           "rna_total" = "#4E79A7")
   breaks = 10^(-10:10)
   minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
   
@@ -546,8 +545,8 @@ while(f <= length(allLocusTags)){
     annotation_logticks(sides = "l") +
     scale_color_manual(name = "Lib. Type",
                        values = cols,
-                       breaks = c("protein_lysate", "rna_ribofraction", "rna_total", "rna_as"),
-                       labels = c("Protein", "RPFs", "mRNA", "asRNA"))
+                       breaks = c("protein_lysate", "rna_ribofraction", "rna_total"),
+                       labels = c("Protein", "RPFs", "mRNA"))
   
   # saving
   filename = paste0("plots/abundance_v2/71_", allLocusTags[i], "-", allLocusTags[f], "_abundTrajectories_tpwise.png")
@@ -571,8 +570,7 @@ while(f <= length(allLocusTags)){
     filter(libtype != "protein_ribo") %>% 
     filter(libtype != "protein_lysate") %>% 
     filter(libtype != "rna_ribofraction") %>% 
-    filter(libtype != "rna_total") %>% 
-    filter(libtype != "rna_as") %>% 
+    filter(libtype != "rna_total") %>%
     ggplot(aes(x = timepoint,
                y = log2(mean),
                color = libtype,

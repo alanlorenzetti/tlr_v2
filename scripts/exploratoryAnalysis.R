@@ -384,6 +384,7 @@ legendCols = list(
 tpannots = colnames(M) %>% str_replace(".*(TP[1-4]).*", "\\1")
 brannots = colnames(M) %>% str_replace(".*(BR[1-3]).*", "\\1")
 
+
 annot = HeatmapAnnotation(which = "col",
                           timepoints = anno_simple(tpannots,
                                                    col = legendCols$timepoints,
