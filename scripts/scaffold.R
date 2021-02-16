@@ -42,4 +42,5 @@ source("scripts/computeAnglesAndMag.R")
 source("scripts/analysesAndFigures.R")
 source("scripts/analysisAndFiguresRequested20201009.R") # correlation plots
 source("scripts/findPutativeRegulatedTx.R")
+source("scripts/norm_issues_tmp.R")
 #source("scripts/bepeReportFigures.R")

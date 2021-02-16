@@ -4,13 +4,9 @@
 
 # this script will take data for Hundt et al. 2007
 # on the half lives of halo transcripts
-# and then compute how long it takes to degrade
-# transcripts completely after adding actinomycin
 
 # in Hundt et al. 2007 the strain was Hsal NRC1
 # but the loci names are from Hsal R1
-# to simplify things, i am just using
-# Hsal R1 genome and annotation
 
 # # source: https://www.omicsdi.org/dataset/arrayexpress-repository/E-MEXP-1088
 # processed data
