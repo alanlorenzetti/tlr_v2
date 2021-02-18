@@ -17,21 +17,14 @@ source("scripts/loadingLibs.R")
 # if LSm binding sites are detected
 # in genes or 5UTRs, sense or antisense,
 # that will be taken into consideration
-lsmGenes = read_delim(file = "data/resultsLSmGenes.csv", delim = ",") %>% 
-  mutate(name = sub("^5UTR_", "", name)) %>% 
-  dplyr::select(-chr,-start,-end,-strand) %>% 
-  group_by(name) %>% 
-  summarise_all(.funs = list(sum)) %>% 
-  ungroup() %>% 
-  rowwise() %>% 
-  mutate(lsmSense = sum(one_sense, two_sense, three_sense, four_sense, five_sense),
-         lsmAntiSense = sum(one_as, two_as, three_as, four_as, five_as)) %>% 
-  ungroup() %>% 
-  mutate(lsmSense = case_when(lsmSense > 0 ~ "yes",
+lsmGenes = read_tsv(file = "data/interactionListNRTX.tsv") %>% 
+  select(name = representative,
+         lsmSense = LSmInteraction,
+         lsmAntiSense = LSmInteractionAS) %>% 
+  mutate(lsmSense = case_when(lsmSense == "Sim" ~ "yes",
                               TRUE ~ "no"),
-         lsmAntiSense = case_when(lsmAntiSense > 0 ~ "yes",
-                                  TRUE ~ "no")) %>% 
-  dplyr::select(name, lsmSense, lsmAntiSense)
+         lsmAntiSense = case_when(lsmAntiSense == "Sim" ~ "yes",
+                                  TRUE ~ "no"))
 
 # getting and parsing info about UTRs
 utr = read_delim(file = "data/5UTR.txt",

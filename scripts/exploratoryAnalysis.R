@@ -82,8 +82,7 @@ ht = Heatmap(M, col = colfunct,
              border = T,
              show_column_names = F,
              heatmap_legend_param = list(
-#               title = "Log10(Abundance)",
-               title = "Log10(Abundância)",
+               title = expression(Log[10](Abundância)),
                border = T,
                direction = "horizontal"))
 
@@ -160,7 +159,8 @@ fullpanel = ggarrange(plotlist = list(twodscatterplot, drawnht),
 
 ggsave("./plots/spectronautPanelExploratory.png",
        plot=fullpanel,
-       width = 10, height = 7)
+       width = 7, height = 6,
+       dpi = 300)
 
 # plotting explained variance
 cumuvarplot = expVar %>%
@@ -249,7 +249,7 @@ ht = Heatmap(M, col = colfunct,
              border = T,
              show_column_names = F,
              heatmap_legend_param = list(
-               title = "Log10(TPM+1)",
+               title = expression(Log[10](TPM+1)),
                border = T,
                direction = "horizontal"))
 
@@ -329,7 +329,8 @@ fullpanel = ggarrange(plotlist = list(twodscatterplot, drawnht),
 
 ggsave("./plots/totalrnaPanelExploratory.png",
        plot=fullpanel,
-       width = 10, height = 7)
+       width = 7, height = 6,
+       dpi = 300)
 
 # plotting explained variance
 cumuvarplot = expVar %>%
@@ -414,7 +415,7 @@ ht = Heatmap(M, col = colfunct,
              border = T,
              show_column_names = F,
              heatmap_legend_param = list(
-               title = "Log10(Abundance)",
+               title = expression(Log[10](Abundance)),
                border = T,
                direction = "horizontal"))
 

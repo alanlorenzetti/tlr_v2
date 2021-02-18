@@ -38,6 +38,7 @@ source("scripts/clusterEnrichmentAnalysis.R")
 source("scripts/unifyAbundance.R")
 source("scripts/heatmapsAllRelativeChanges.R")
 source("scripts/heatmapsAllAbsolute.R")
+source("scripts/heatmapsAllAbsolute_v2_tese.R")
 source("scripts/computeAnglesAndMag.R")
 source("scripts/analysesAndFigures.R")
 source("scripts/analysisAndFiguresRequested20201009.R") # correlation plots

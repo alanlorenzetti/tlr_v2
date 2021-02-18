@@ -37,8 +37,6 @@ draw(htComplete,
      main_heatmap = "Protein")
 dev.off()
 
-
-
 # general protein-mRNA trends plot ####
 breaks = 10^(-10:10)
 minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))

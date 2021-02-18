@@ -51,7 +51,8 @@ packs = c("BiocManager",
           "openxlsx",
           "mclust",
           "purrr",
-          "svglite")
+          "svglite",
+          "ggtext")
 
 # loading and installing missing packages
 p_load(char = packs)
