@@ -5,13 +5,13 @@
 # it should help us to understand the 
 # translational landscape of halo
 
-############ loading packages
-source("scripts/loadingLibs.R")
+# coRdon will help us to compute codon usage ####
+# taking loaded object and keeping only CDS
+nrtxseqscds = nrtxseqs[str_detect(string = names(nrtxseqs), 
+                                  pattern = "_t|_r|_s",
+                                  negate = T)]
 
-# coRdon will help us to compute codon usage
-pfeiSeqsShortNames = pfeiSeqs
-names(pfeiSeqsShortNames) = sub("\\|.*$", "", names(pfeiSeqsShortNames))
-CT = codonTable(pfeiSeqsShortNames)
+CT = codonTable(nrtxseqscds)
 
 # getting codon adaptation index
 # using ribosomal proteins as the reference set

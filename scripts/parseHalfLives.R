@@ -11,10 +11,7 @@
 # # source: https://www.omicsdi.org/dataset/arrayexpress-repository/E-MEXP-1088
 # processed data
 
-############ loading packages
-source("scripts/loadingLibs.R")
-
-# importing data
+# importing data ####
 # it is gonna throw a warning since there are columns with
 # repetitive names
 hldf = read_delim(file="data/E-MEXP-1088-processed-data-1369116981.txt",
@@ -37,14 +34,12 @@ hl = hl %>% drop_na()
 # hl1 and hl2 should be a mean of both values
 hl$mean = rowMeans(hl[,2:3])
 
-# I will remove everything after OEXXXX[FR] code to get
-# consistent locus_tags, though I am not sure why the probes
-# have those suffixes; this will yield a few repetitive
-# instances of refs, so the repetitive ones will have a mean
-# value too
+# I will drop every entry holding a suffix after OEXXXX[FR] since
+# I don't know what they mean
+# I am also computing a mean of repetitive refs
 hl = hl %>%
-  mutate(ref = str_replace(string = ref, pattern = "for.*$|_.*$", replacement = ""),
-         ref = str_replace(string = ref, pattern = "for.*$|_.*$", replacement = "")) %>% 
+  filter(str_detect(ref, "^OE")) %>% 
+  filter(str_detect(ref, "for|_e|orf|fehlt", negate = T)) %>% 
   dplyr::select(ref, mean) %>% 
   group_by(ref) %>% 
   summarise(mean = mean(mean))
@@ -58,17 +53,20 @@ sd = sd(hl$mean)
 hl = hl %>%
   filter(mean >= m - (2*sd) & mean <= m + (2*sd))
 
-# using previously dictionary to add
-# halflives to our non redundant transcriptome
+# using a dictionary of locus tags to unify R1 (Hundt et al 2007)
+# locus tags with NRC1 data
+nrtxsep = read_tsv("https://alanlorenzetti.github.io/halo_nr_tx/data/dictionary.tsv") %>% 
+  separate_rows(locus_tag, sep = ",")
+
 # some of the genes in the Hundt et al. 2007 have
 # different locus_tags but the same sequence
 # that is common in halo
 # therefore, two different OE locus_tags can have
 # a same VNG locus_tag in our redundant transcriptome
 # for those cases, I will take the mean half life
-halfLives = left_join(dictR1, hl, by = c("R1locus_tag" = "ref")) %>% 
-  drop_na() %>%
-  dplyr::select(locus_tag = pfeiLocus_tag, mean) %>% 
+halfLives = left_join(nrtxsep, hl, by = c("locus_tag" = "ref")) %>% 
+  filter(!is.na(mean)) %>% 
+  dplyr::select(locus_tag = representative, mean) %>% 
   group_by(locus_tag) %>% 
   summarise(HL = mean(mean)) %>% 
   ungroup()

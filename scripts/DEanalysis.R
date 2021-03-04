@@ -6,16 +6,13 @@
 # and run differential expression
 # analysis using DESeq2
 
-# loading packages  ################################################ 
-source("scripts/loadingLibs.R")
-
-# setting thresholds ######
+# setting thresholds ####
 padjthreshold = 0.05
 log2fcthreshold = 0.75
 borderlinezero = 0.25
 tpmthreshold = 3
 
-# volcano plot function ################################################ 
+# volcano plot function ####
 volcaPlot = function(allTable, sigTable){
   # Volcano plot with plotly
   ax = list(
@@ -74,7 +71,7 @@ volcaPlot = function(allTable, sigTable){
   }
 }
 
-# loading raw counts ################################################ 
+# loading raw counts ####
 # to manually compute TPMs, follow the instructions on the following
 # page: https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/
 # reading totalrna counts
@@ -83,7 +80,7 @@ totrna=read_delim("data/tableEstCountsTotalRNA23_v3.tsv",delim="\t")
 # reading riboseq counts
 riborna=read_delim("data/tableEstCountsRiboSeqTrim15_v3.tsv",delim="\t")
 
-# processing raw counts with DESeq2  ##########################################
+# processing raw counts with DESeq2 ####
 ## building se object for both
 # totrna
 samples = totrna %>% 

@@ -5,9 +5,6 @@
 # linear models and figures
 # using abundance data
 
-# loading libs ####
-source("scripts/loadingLibs.R")
-
 # unifying protein counts and rna counts ####
 # and performing quantile normalization
 abund = left_join(spectroWide, tpm, by = "locus_tag")

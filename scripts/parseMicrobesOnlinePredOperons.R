@@ -6,10 +6,8 @@
 # copy and save as csv the table available at
 # http://www.microbesonline.org/operons/gnc64091.html
 
-# loading libraries
-source("scripts/loadingLibs.R")
-
-# reading csv table
+# starting processing ####
+# reading csv table 
 if(!file.exists("data/microbesOnlineOperons.RData")){
   df = read_delim("http://www.microbesonline.org/operons/gnc64091.named", delim="\t")
   save(df, file = "data/microbesOnlineOperons.RData")
@@ -18,7 +16,8 @@ if(!file.exists("data/microbesOnlineOperons.RData")){
 }
 
 # filtering in only needed cols
-df = df %>% dplyr::select(SysName1,SysName2,bOp)
+df = df %>%
+  dplyr::select(SysName1,SysName2,bOp)
 
 # function to parse the table
 parseOperons = function(df){

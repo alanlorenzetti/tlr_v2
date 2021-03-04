@@ -6,9 +6,6 @@
 # coming from ChIP-seq.ggb file
 # provided by rvencio
 
-# loading libs #####
-source("scripts/loadingLibs.R")
-
 # setting up promoter regions from CDS start #####
 upstream = 150
 downstream = 150
@@ -36,7 +33,8 @@ tfgr$name = names(tfgr)
 
 # creating CDS annotation object from pfeiffer et al 2019 annot CDS ####
 # using pfeiffer et al 2019 annotation
-pfeiAnnotCDS = pfei %>% 
+pfeiAnnotCDS = rtracklayer::import("data/Hsalinarum-gene-annotation-pfeiffer2019.gff3") %>% 
+  as_tibble() %>% 
   filter(type == "CDS")
 
 # creating granges obj
@@ -77,3 +75,21 @@ colnames(ovlps)[-1] = paste0("ChIPSeq_", colnames(ovlps)[-1])
 
 # copying object
 chipSeqTFs = ovlps
+
+# if at least one of the transcript groups
+# has a ChIP-Seq binding site
+# it is going to be == yes
+chipSeqTFs = left_join(x = nrtxsep,
+                       y = chipSeqTFs,
+                       by = "locus_tag") %>% 
+  select(-product) %>% 
+  mutate(across(.cols = starts_with("Ch"),
+                .fns = ~ case_when(.x == "yes" ~ TRUE,
+                                   TRUE ~ FALSE))) %>% 
+  group_by(representative) %>% 
+  summarise(across(.cols = starts_with("Ch"),
+                   .fns = ~ sum(.x))) %>% 
+  ungroup() %>% 
+  mutate(across(.cols = starts_with("Ch"),
+                .fns = ~ case_when(.x >= 1 ~ "yes",
+                                   TRUE ~ "no")))

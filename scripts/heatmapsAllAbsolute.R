@@ -8,9 +8,6 @@
 # here I am trying to integrate
 # the time series into a single heatmap
 
-# loading libs #####
-source("scripts/loadingLibs.R")
-
 # preparing main abundance dataset ####
 # dataset will be normalized within each timepoint
 hma = abund %>% 
@@ -114,9 +111,11 @@ arCOGcols = c(
   "Cell cycle control, cell division, chromosome partitioning" = "#F28E2B", # orange
   "Cell motility" = "#FFBE7D", # light orange
   "Cell wall/membrane/envelope biogenesis" = "#59A14F", # green
+  "Chromatin structure and dynamics" = "yellow", # 
   "Coenzyme transport and metabolism" = "#8CD17D", # light green
   "Defense mechanisms" = "#B6992D", # yellow green
   "Energy production and conversion" = "#F1CE63", # yellow
+  "Extracellular structures" = "blue", # 
   "General function prediction only" = "grey70", 
   "Inorganic ion transport and metabolism" = "#86BCB6", # light teal
   "Function unknown" = "#79706E", # dark grey
@@ -125,7 +124,8 @@ arCOGcols = c(
   "Mobilome: prophages, transposons" = "#D37295", # pink
   "Nucleotide transport and metabolism" = "orchid1", # orchid1
   "Posttranslational modification, protein turnover, chaperones" = "darkturquoise", # darkturquoise
-  "Replication, recombination and repair" = "skyblue2", # skyblue2
+  "Replication, recombination and repair" = "skyblue2", # skyblue2,
+  "RNA processing and modification" = "#B07AA1", # purple
   "Secondary metabolites biosynthesis, transport and catabolism" = "#9D7660", # brown
   "Signal transduction mechanisms" = "#D7B5A6", # light orange
   "Transcription" = "#499894", # teal
@@ -134,7 +134,7 @@ arCOGcols = c(
 
 # getting classes included in arCOG
 # this will be used when setting the legend for arCOG
-arCOGClasses = hmaFuncat$arCOG %>% sort() %>% unique()
+arCOGClasses = hmaFuncat$cog_category %>% sort() %>% unique()
 arCOGcols = arCOGcols[names(arCOGcols) %in% arCOGClasses]
 
 # defining colors for the heatmap and annots

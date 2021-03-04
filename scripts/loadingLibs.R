@@ -3,6 +3,7 @@
 # description #####
 # this script will load all the required packages
 # for the downstream steps
+# it will load essential files and objx as well
 if(!require(pacman)){install.packages("pacman")}
 library(pacman)
 
@@ -64,3 +65,12 @@ theme_set(theme_bw())
 tab10 = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`
 tab20 = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`
 seqblues = ggthemes_data$tableau$`color-palettes`$`ordered-sequential`$Blue$value
+
+# I have standardized a non-redundant transcriptome for
+# Hsalinarum NRC-1. It is available at:
+# https://alanlorenzetti.github.io/halo_nr_tx/
+# downloading the list of non-redundant locus_tags
+# with alternative names
+nrtx = read_tsv("https://alanlorenzetti.github.io/halo_nr_tx/data/dictionary.tsv")
+nrtxseqs = readDNAStringSet(filepath = "https://alanlorenzetti.github.io/halo_nr_tx/data/Hsalinarum_nrtx.fa",
+                            format = "fasta")

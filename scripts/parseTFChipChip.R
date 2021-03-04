@@ -6,9 +6,6 @@
 # coming from ChIP-chip.ggb file
 # provided by rvencio
 
-# loading libs #####
-source("scripts/loadingLibs.R")
-
 # loading and parsing tf file #####
 tfggb = read_delim(file = "data/ChIP-chip.ggb",
                    delim = "\t")
@@ -60,3 +57,21 @@ colnames(ovlps)[-1] = paste0("ChIPChip_", colnames(ovlps)[-1])
 
 # copying object
 chipChipTFs = ovlps
+
+# if at least one of the transcript groups
+# has a ChIP-Seq binding site
+# it is going to be == yes
+chipChipTFs = left_join(x = nrtxsep,
+                        y = chipChipTFs,
+                        by = "locus_tag") %>% 
+  select(-product) %>% 
+  mutate(across(.cols = starts_with("Ch"),
+                .fns = ~ case_when(.x == "yes" ~ TRUE,
+                                   TRUE ~ FALSE))) %>% 
+  group_by(representative) %>% 
+  summarise(across(.cols = starts_with("Ch"),
+                   .fns = ~ sum(.x))) %>% 
+  ungroup() %>% 
+  mutate(across(.cols = starts_with("Ch"),
+                .fns = ~ case_when(.x >= 1 ~ "yes",
+                                   TRUE ~ "no")))

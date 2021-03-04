@@ -8,9 +8,6 @@
 # here I am trying to integrate
 # the time series into a single heatmap
 
-# loading libs #####
-source("scripts/loadingLibs.R")
-
 # preparing main abundance dataset ####
 # dataset will be normalized within each timepoint
 hma = abund %>% 
@@ -104,7 +101,7 @@ hmaRO = hma %>%
 rownames(hmaRO) = rownames(hmaM)
 
 # defining colors and color functions ####
-# 21 manual colors;
+# 24 manual colors;
 # mostly extracted from
 # ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10` and
 # ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`
@@ -114,9 +111,11 @@ arCOGcols = c(
   "Cell cycle control, cell division, chromosome partitioning" = "#F28E2B", # orange
   "Cell motility" = "#FFBE7D", # light orange
   "Cell wall/membrane/envelope biogenesis" = "#59A14F", # green
+  "Chromatin structure and dynamics" = "yellow", # 
   "Coenzyme transport and metabolism" = "#8CD17D", # light green
   "Defense mechanisms" = "#B6992D", # yellow green
   "Energy production and conversion" = "#F1CE63", # yellow
+  "Extracellular structures" = "blue", # 
   "General function prediction only" = "grey70", 
   "Inorganic ion transport and metabolism" = "#86BCB6", # light teal
   "Function unknown" = "#79706E", # dark grey
@@ -125,7 +124,8 @@ arCOGcols = c(
   "Mobilome: prophages, transposons" = "#D37295", # pink
   "Nucleotide transport and metabolism" = "orchid1", # orchid1
   "Posttranslational modification, protein turnover, chaperones" = "darkturquoise", # darkturquoise
-  "Replication, recombination and repair" = "skyblue2", # skyblue2
+  "Replication, recombination and repair" = "skyblue2", # skyblue2,
+  "RNA processing and modification" = "#B07AA1", # purple
   "Secondary metabolites biosynthesis, transport and catabolism" = "#9D7660", # brown
   "Signal transduction mechanisms" = "#D7B5A6", # light orange
   "Transcription" = "#499894", # teal
@@ -134,7 +134,7 @@ arCOGcols = c(
 
 # getting classes included in arCOG
 # this will be used when setting the legend for arCOG
-arCOGClasses = hmaFuncat$arCOG %>% sort() %>% unique()
+arCOGClasses = hmaFuncat$cog_category %>% sort() %>% unique()
 arCOGcols = arCOGcols[names(arCOGcols) %in% arCOGClasses]
 
 # defining colors for the heatmap and annots
@@ -154,7 +154,7 @@ heatCols = list(
 
 # defining colors and values for legends ####
 heatLegs = list(
-  arCOG = Legend(title = "arCOG",
+  arCOG = Legend(title = "COG",
                  at = names(heatCols$arCOGCol),
                  legend_gp  = gpar(fill = heatCols$arCOGCol %>% unname()),
                  border="black"),
@@ -181,7 +181,7 @@ heatLegs = list(
 
 # defining annotation columns ####
 row_ha = HeatmapAnnotation(which = "row",
-                           arCOG = anno_simple(hmaFuncat$arCOG,
+                           arCOG = anno_simple(hmaFuncat$cog_category,
                                                border = T,
                                                col = heatCols$arCOGCol),
                            lsmSense = anno_simple(hmaFuncat$lsmSense,
@@ -199,7 +199,7 @@ row_ha = HeatmapAnnotation(which = "row",
                            GCdev = anno_simple(hmaFuncat$GCdev,
                                                col = heatCols$GCdevcol,
                                                border = T),
-                           annotation_label = c("arCOG",
+                           annotation_label = c("COG",
                                                 "SmAP1",
                                                 "asRNA",
                                                 "Meia-vida",
@@ -223,7 +223,7 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "Proteína",
                  left_annotation = row_ha,
-                 row_split = factor(hmaFuncat$arCOG),
+                 row_split = factor(hmaFuncat$cog_category),
                  #row_split = factor(hmaFuncat$asRNA),
                  #row_split = factor(hmaFuncat$lsmSense),
                  cluster_row_slices = F,
@@ -372,9 +372,6 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "Proteína",
                  left_annotation = row_ha,
-                 #row_split = factor(hmaFuncat$arCOG),
-                 #row_split = factor(hmaFuncat$asRNA),
-                 #row_split = factor(hmaFuncat$lsmSense),
                  cluster_row_slices = F,
                  row_title = NULL,
                  border = T,
@@ -426,7 +423,7 @@ htProt = Heatmap(log10(hmaM[,1:4]),
                  column_labels = c("TP1", "TP2", "TP3", "TP4"),
                  column_title = "Proteína",
                  left_annotation = row_ha,
-                 row_split = factor(hmaFuncat$arCOG),
+                 row_split = factor(hmaFuncat$cog_category),
                  #row_split = factor(hmaFuncat$asRNA),
                  #row_split = factor(hmaFuncat$lsmSense),
                  cluster_row_slices = F,
@@ -477,7 +474,7 @@ htRO = Heatmap(log2(hmaRO),
                  border = "black"))
 
 htComplete = htProt + htmRNA + htRPF + htTE + htRO
-htComplete = htComplete[hmaFuncat$arCOG == "Mobilome: prophages, transposons",]
+htComplete = htComplete[hmaFuncat$cog_category == "Mobilome: prophages, transposons",]
 htComplete = grid.grabExpr(draw(htComplete,
                                 heatmap_legend_side = "top"))
 
@@ -487,14 +484,14 @@ al = 0.25
 sz = 0.3
 # protein levels
 pcomp[["prot"]] = hmaFuncat %>% 
-  mutate(arCOG = case_when(arCOG != "Mobilome: prophages, transposons" ~ "Outras classes",
+  mutate(cog_category = case_when(cog_category != "Mobilome: prophages, transposons" ~ "Outras classes",
                            TRUE ~ "Mobiloma")) %>% 
   rowwise() %>% 
   mutate(prot = mean(mean_abundance_protein_lysate_TP1,
                      mean_abundance_protein_lysate_TP2,
                      mean_abundance_protein_lysate_TP3,
                      mean_abundance_protein_lysate_TP4)) %>% 
-  ggplot(aes(y = log10(prot), x = arCOG)) +
+  ggplot(aes(y = log10(prot), x = cog_category)) +
   geom_boxplot(outlier.shape = NA) +
   geom_beeswarm(size = sz, alpha = al) +
   stat_compare_means(aes(label = ..p.signif..),method = "wilcox.test") +
@@ -507,14 +504,14 @@ pcomp[["prot"]] = hmaFuncat %>%
 
 # protein levels
 pcomp[["mrna"]] = hmaFuncat %>% 
-  mutate(arCOG = case_when(arCOG != "Mobilome: prophages, transposons" ~ "Outras classes",
+  mutate(cog_category = case_when(cog_category != "Mobilome: prophages, transposons" ~ "Outras classes",
                            TRUE ~ "Mobiloma")) %>% 
   rowwise() %>% 
   mutate(mrna = mean(mean_abundance_rna_total_TP1,
                      mean_abundance_rna_total_TP2,
                      mean_abundance_rna_total_TP3,
                      mean_abundance_rna_total_TP4)) %>% 
-  ggplot(aes(y = log10(mrna), x = arCOG)) +
+  ggplot(aes(y = log10(mrna), x = cog_category)) +
   geom_boxplot(outlier.shape = NA) +
   geom_beeswarm(size = sz, alpha = al) +
   stat_compare_means(aes(label = ..p.signif..),method = "wilcox.test") +
@@ -527,14 +524,14 @@ pcomp[["mrna"]] = hmaFuncat %>%
 
 # TE
 pcomp[["TE"]] = hmaFuncat %>% 
-  mutate(arCOG = case_when(arCOG != "Mobilome: prophages, transposons" ~ "Outras classes",
+  mutate(cog_category = case_when(cog_category != "Mobilome: prophages, transposons" ~ "Outras classes",
                            TRUE ~ "Mobiloma")) %>% 
   rowwise() %>% 
   mutate(TE = mean(mean_abundance_protein_lysate_TP1 / mean_abundance_rna_total_TP1,
                    mean_abundance_protein_lysate_TP2 / mean_abundance_rna_total_TP2,
                    mean_abundance_protein_lysate_TP3 / mean_abundance_rna_total_TP3,
                    mean_abundance_protein_lysate_TP4 / mean_abundance_rna_total_TP4)) %>% 
-  ggplot(aes(y = log2(TE), x = arCOG)) +
+  ggplot(aes(y = log2(TE), x = cog_category)) +
   geom_boxplot(outlier.shape = NA) +
   geom_beeswarm(size = sz, alpha = al) +
   stat_compare_means(aes(label = ..p.signif..),method = "wilcox.test") +
@@ -547,9 +544,9 @@ pcomp[["TE"]] = hmaFuncat %>%
 
 # codon adaptation index 
 pcomp[["CAI"]] = hmaFuncat %>% 
-  mutate(arCOG = case_when(arCOG != "Mobilome: prophages, transposons" ~ "Outras classes",
+  mutate(cog_category = case_when(cog_category != "Mobilome: prophages, transposons" ~ "Outras classes",
                            TRUE ~ "Mobiloma")) %>% 
-  ggplot(aes(y = cai, x = arCOG)) +
+  ggplot(aes(y = cai, x = cog_category)) +
   geom_boxplot(outlier.shape = NA) +
   geom_beeswarm(size = sz, alpha = al) +
   stat_compare_means(aes(label = ..p.signif..),method = "wilcox.test") +
@@ -562,9 +559,9 @@ pcomp[["CAI"]] = hmaFuncat %>%
 
 # GC
 pcomp[["GC"]] = hmaFuncat %>% 
-  mutate(arCOG = case_when(arCOG != "Mobilome: prophages, transposons" ~ "Outras classes",
+  mutate(cog_category = case_when(cog_category != "Mobilome: prophages, transposons" ~ "Outras classes",
                            TRUE ~ "Mobiloma")) %>% 
-  ggplot(aes(y = GC, x = arCOG)) +
+  ggplot(aes(y = GC, x = cog_category)) +
   geom_boxplot(outlier.shape = NA) +
   geom_beeswarm(size = sz, alpha = al) +
   stat_compare_means(aes(label = ..p.signif..),method = "wilcox.test") +
