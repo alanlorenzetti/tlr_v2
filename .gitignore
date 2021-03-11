@@ -1,4 +1,5 @@
 *.Rproj
+/results
 /plots
 /data
 addCommitPush.sh

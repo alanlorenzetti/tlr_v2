@@ -159,6 +159,7 @@ colnames(spectroWide)[-1] = sub("abundance_", "abundance_protein_", colnames(spe
 spectroWide = left_join(x = spectroWide,
                         y = nrtxsep %>% select(-product),
                         by = c("locus_tag" = "locus_tag")) %>% 
+  filter(!is.na(representative)) %>% 
   relocate(representative) %>% 
   select(-locus_tag) %>% 
   group_by(representative) %>% 
@@ -176,15 +177,4 @@ spectroWide = left_join(x = spectroWide,
 #            color = timepoint)) +
 #   geom_density() +
 #   facet_grid(~libType)
-
-# generating a heat map to check
-# sample grouping
-# colfunct = circlize::colorRamp2(breaks = c(0,3,6), colors = viridis(3))
-# Heatmap(spectro[ ,-1] %>% drop_na() %>% as.matrix() %>% log10(),
-#         col = colfunct)
-# 
-# # timepoint grouping
-# Heatmap(spectroWide %>% dplyr::select(-locus_tag, -contains("se")) %>%
-#           drop_na() %>% as.matrix() %>% log10(),
-#         col = colfunct)
 

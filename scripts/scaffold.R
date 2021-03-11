@@ -33,15 +33,20 @@ source("scripts/exploratoryAnalysis.R") # exploratory analysis plots for dissert
 # source("scripts/proteinRegRules.R") # about to get deprecated
 # source("scripts/timecourseAnalysis.R") # about to get deprecated
 
-#source("scripts/heatmaps.R")
+# source("scripts/heatmaps.R") about to get deprecated
 # source("scripts/clusterEnrichmentAnalysis.R") # about to get deprecated
 source("scripts/unifyAbundance.R")
 # source("scripts/heatmapsAllRelativeChanges.R") # about to get deprecated
 # source("scripts/heatmapsAllAbsolute.R") # about to get deprecated
 source("scripts/heatmapsAllAbsolute_v2_tese.R")
 # source("scripts/computeAnglesAndMag.R") # about to get deprecated
+source("scripts/globalFCanalysis.R")
 source("scripts/analysesAndFigures.R")
 source("scripts/analysisAndFiguresRequested20201009.R") # correlation plots
 source("scripts/findPutativeRegulatedTx.R")
 # source("scripts/norm_issues_tmp.R") # accessory and not essential
 # source("scripts/bepeReportFigures.R")
+
+# creating a few directories necessary to store results and plots
+if(!dir.exists("plots")){dir.create("plots")}
+if(!dir.exists("results")){dir.create("results")}

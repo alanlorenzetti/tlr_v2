@@ -13,7 +13,7 @@ abundmean = abund %>%
   dplyr::select(starts_with("mean")) %>%
   as.matrix() %>% 
   normalize.quantiles() %>% 
-  as_tibble()
+  as_tibble(rownames = NULL)
 colnames(abundmean) = abund %>%
   dplyr::select(starts_with("mean")) %>% 
   colnames()
@@ -22,7 +22,7 @@ abundse = abund %>%
   dplyr::select(starts_with("se")) %>%
   as.matrix() %>% 
   normalize.quantiles() %>% 
-  as_tibble()
+  as_tibble(rownames = NULL)
 colnames(abundse) = abund %>%
   dplyr::select(starts_with("se")) %>% 
   colnames()

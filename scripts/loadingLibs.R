@@ -53,7 +53,9 @@ packs = c("BiocManager",
           "mclust",
           "purrr",
           "svglite",
-          "ggtext")
+          "ggtext",
+          "gtools",
+          "DT")
 
 # loading and installing missing packages
 p_load(char = packs)
