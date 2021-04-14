@@ -173,8 +173,8 @@ spectroWide = left_join(x = spectroWide,
 # distributions are quite similar
 # and look like poisson
 # ggplot(spectroLong,
-#        aes(x = log10(mean_abundance),
+#        aes(x = mean_abundance,
 #            color = timepoint)) +
 #   geom_density() +
-#   facet_grid(~libType)
+#   xlim(c(0, 50000))
 

@@ -29,6 +29,7 @@ ncbiDict = nrtx %>%
   mutate(locus_tag = str_replace(locus_tag, ",.*$", ""))
 
 # starting processing ####
+# 20210308 ####
 # creating a new object to compute fold changes
 # and changing
 fcs = abund %>% 
@@ -44,6 +45,97 @@ fcs = abund %>%
          mean_lfc_protein_lysate_TP3vsTP2 = log2(mean_abundance_protein_lysate_TP3 / mean_abundance_protein_lysate_TP2),
          mean_lfc_protein_lysate_TP4vsTP3 = log2(mean_abundance_protein_lysate_TP4 / mean_abundance_protein_lysate_TP3)) %>% 
   select(c(locus_tag, contains("lfc")))
+
+# checking distributions
+# for alternative version of fcs
+fcsalt = abund %>% 
+  mutate(mean_lfc_rna_total_TP2 = log2(mean_abundance_rna_total_TP2 / mean_abundance_rna_total_TP1),
+         mean_lfc_rna_total_TP3 = log2(mean_abundance_rna_total_TP3 / mean_abundance_rna_total_TP1),
+         mean_lfc_rna_total_TP4 = log2(mean_abundance_rna_total_TP4 / mean_abundance_rna_total_TP1),
+         
+         mean_lfc_rna_ribofraction_TP2 = log2(mean_abundance_rna_ribofraction_TP2 / mean_abundance_rna_ribofraction_TP1),
+         mean_lfc_rna_ribofraction_TP3 = log2(mean_abundance_rna_ribofraction_TP3 / mean_abundance_rna_ribofraction_TP1),
+         mean_lfc_rna_ribofraction_TP4 = log2(mean_abundance_rna_ribofraction_TP4 / mean_abundance_rna_ribofraction_TP1),
+         
+         mean_lfc_protein_lysate_TP2 = log2(mean_abundance_protein_lysate_TP2 / mean_abundance_protein_lysate_TP1),
+         mean_lfc_protein_lysate_TP3 = log2(mean_abundance_protein_lysate_TP3 / mean_abundance_protein_lysate_TP1),
+         mean_lfc_protein_lysate_TP4 = log2(mean_abundance_protein_lysate_TP4 / mean_abundance_protein_lysate_TP1)) %>% 
+  select(c(locus_tag, contains("lfc")))
+
+fcsalt %>% 
+  pivot_longer(cols = starts_with("mean"),
+               names_to = c("libtype", "timepoint"),
+               names_pattern = ".*_(.*_.*)_(.*)",
+               values_to = "value") %>% 
+  filter(libtype == "protein_lysate") %>% 
+  ggplot(aes(x=value, color = timepoint)) +
+  geom_density() +
+  xlab("log2(Fold Change)")
+
+# checking correlation of foldchanges between in house
+# vs spectronaut
+oosnplots = list()
+
+# TP2 vs TP1
+oosnplots$TP2 = oneomicsWide %>% 
+  mutate(locus_tag = str_replace(locus_tag, "VNG", "VNG_")) %>% 
+  left_join(x = .,
+            y = fcsalt,
+            by = "locus_tag") %>% 
+  select(c(locus_tag, contains("lfc"))) %>% 
+  ggplot(aes(x = mean_lfc_protein_lysate_TP2.x,
+             y = mean_lfc_protein_lysate_TP2.y)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  xlim(c(-6, 6)) +
+  ylim(c(-6, 6)) +
+  xlab("OneOmics") +
+  ylab("Spectronaut")
+
+# TP3 vs TP1
+oosnplots$TP3 = oneomicsWide %>% 
+  mutate(locus_tag = str_replace(locus_tag, "VNG", "VNG_")) %>% 
+  left_join(x = .,
+            y = fcsalt,
+            by = "locus_tag") %>% 
+  select(c(locus_tag, contains("lfc"))) %>% 
+  ggplot(aes(x = mean_lfc_protein_lysate_TP3.x,
+             y = mean_lfc_protein_lysate_TP3.y)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  xlim(c(-6, 6)) +
+  ylim(c(-6, 6)) +
+  xlab("OneOmics") +
+  ylab("Spectronaut")
+
+# TP4 vs TP1
+oosnplots$TP4 = oneomicsWide %>% 
+  mutate(locus_tag = str_replace(locus_tag, "VNG", "VNG_")) %>% 
+  left_join(x = .,
+            y = fcsalt,
+            by = "locus_tag") %>% 
+  select(c(locus_tag, contains("lfc"))) %>% 
+  ggplot(aes(x = mean_lfc_protein_lysate_TP4.x,
+             y = mean_lfc_protein_lysate_TP4.y)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  xlim(c(-6, 6)) +
+  ylim(c(-6, 6)) +
+  xlab("OneOmics") +
+  ylab("Spectronaut")
+
+ggarrange(plotlist = oosnplots,
+          labels = c("TP2 vs. TP1",
+                     "TP3 vs. TP1",
+                     "TP4 vs. TP1"),
+          nrow = 1,
+          ncol = 3)
 
 # replacing locus_tags if requested by the user
 if(ncbiLocusTag == "y"){
@@ -239,3 +331,343 @@ tcCodes[["webObj"]] %>%
   DT::saveWidget(widget = .,
                  file = "20210311_globalFCanalysis_int_table.html",
                  selfcontained = T)
+
+# creating and generating histograms for lfcs tpi vs. tp1
+if(!dir.exists("plots/20210312_lfc_hists")){dir.create("plots/20210312_lfc_hists")}
+
+# new tidy lfc object
+fcs2 = abund %>% 
+  mutate(mean_lfc_rna_total_TP2vsTP1 = log2(mean_abundance_rna_total_TP2 / mean_abundance_rna_total_TP1),
+         mean_lfc_rna_total_TP3vsTP1 = log2(mean_abundance_rna_total_TP3 / mean_abundance_rna_total_TP1),
+         mean_lfc_rna_total_TP4vsTP1 = log2(mean_abundance_rna_total_TP4 / mean_abundance_rna_total_TP1),
+         
+         mean_lfc_rna_ribofraction_TP2vsTP1 = log2(mean_abundance_rna_ribofraction_TP2 / mean_abundance_rna_ribofraction_TP1),
+         mean_lfc_rna_ribofraction_TP3vsTP1 = log2(mean_abundance_rna_ribofraction_TP3 / mean_abundance_rna_ribofraction_TP1),
+         mean_lfc_rna_ribofraction_TP4vsTP1 = log2(mean_abundance_rna_ribofraction_TP4 / mean_abundance_rna_ribofraction_TP1),
+         
+         mean_lfc_protein_lysate_TP2vsTP1 = log2(mean_abundance_protein_lysate_TP2 / mean_abundance_protein_lysate_TP1),
+         mean_lfc_protein_lysate_TP3vsTP1 = log2(mean_abundance_protein_lysate_TP3 / mean_abundance_protein_lysate_TP1),
+         mean_lfc_protein_lysate_TP4vsTP1 = log2(mean_abundance_protein_lysate_TP4 / mean_abundance_protein_lysate_TP1)) %>% 
+  select(c(locus_tag, contains("lfc"))) %>% 
+  pivot_longer(cols = starts_with("mean"),
+               names_to = c("libtype", "timepointContrast"),
+               names_pattern = "mean_(.*_.*)_(TP.*)",
+               values_to = "lfc")
+
+# plotting and saving
+plfc = fcs2 %>%
+  ggplot(aes(x = lfc)) +
+  geom_histogram(color = "black", fill = "white") +
+  facet_wrap(timepointContrast ~ libtype )
+ggsave(plot = plfc,
+       filename = "plots/20210312_lfc_hists/lfc_hists.png",
+       dpi = 300,
+       unit = "in",
+       width = 10,
+       height = 7)
+
+# 20210314 ####
+# THIS IS NOT AN AUTOMATIC STEP YET
+# save the 27x27 matrix with locus_tags from 
+# 20210314_compendium_globalFCanalysis_counts_table_RV.xlsx to
+# 20210314_compendium_globalFCanalysis_counts_table_RV.csv to
+# and then proceed
+# reading csv
+df = read_csv(file = "data/20210314_compendium_globalFCanalysis_counts_table_RV.csv",
+              col_names = F)
+
+# getting a vector of genes interacting with lsm
+lsm_lt = lsmGenes %>%
+  filter(lsmSense == "yes") %>%
+  select(name) %>%
+  unlist(use.names = F)
+
+# creating output matrix
+outmatrix = matrix(nrow = 27,
+                   ncol = 27)
+
+# iterating over original tibble
+for(i in 1:dim(df)[1]){
+  for(j in 1:dim(df)[2]){
+    if(!is.na(df[i,j] %>% unlist(use.names = F))){
+      cell = df[i,j] %>% 
+        unlist(use.names = F) %>%
+        str_split(pattern = " ") %>%
+        unlist()
+      outmatrix[i,j] = sum(cell %in% lsm_lt)
+    }else{
+      outmatrix[i,j] = 0
+    }
+  }
+}
+
+# plots requested by rvencio
+# plotting ####
+breaks = 10^(-10:10)
+minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
+
+# setting correlation method to compare
+mt = "pearson"
+
+# protein abundance in function of mRNA
+protvsmrna = abundLong %>% 
+  filter(timepoint != "TP0") %>% 
+  dplyr::select(-se) %>% 
+  pivot_wider(names_from = libtype,
+              values_from = mean) %>% 
+  ggplot(aes(y = protein_lysate,
+             x = rna_total)) +
+  #    geom_density2d() +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  facet_wrap(~ timepoint) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  # ylab("Abundância de Proteínas") +
+  # xlab("Abundância de mRNAs") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks()
+
+# slide prot from TPi+1 mRNA from TPi
+# TP2 vs TP1
+slide1 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP2,
+             x = mean_abundance_rna_total_TP1)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP2 vs. mRNA TP1")
+
+# TP3 vs TP2
+slide2 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP3,
+             x = mean_abundance_rna_total_TP2)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP3 vs. mRNA TP2")
+
+# TP4 vs TP3
+slide3 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP4,
+             x = mean_abundance_rna_total_TP3)) +
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP4 vs. mRNA TP3")
+
+# arranging plots
+protvsmrnaslide = ggarrange(slide1, slide2, slide3,
+                            ncol = 3, nrow = 1)
+
+# 20210323 ####
+# plots requested by rvencio
+# plotting ####
+breaks = 10^(-10:10)
+minor_breaks = rep(1:9, 21)*(10^rep(-10:10, each=9))
+
+# setting correlation method to compare
+mt = "pearson"
+
+# protein abundance in function of mRNA
+protvsmrna = abundLong %>% 
+  filter(timepoint != "TP0") %>% 
+  dplyr::select(-se) %>% 
+  pivot_wider(names_from = libtype,
+              values_from = mean) %>% 
+  ggplot(aes(y = protein_lysate,
+             x = rna_total)) +
+  geom_density2d(color = "black") +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  facet_wrap(~ timepoint) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  # ylab("Abundância de Proteínas") +
+  # xlab("Abundância de mRNAs") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks()
+
+# slide prot from TPi+1 mRNA from TPi
+# TP2 vs TP1
+slide1 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP2,
+             x = mean_abundance_rna_total_TP1)) +
+  geom_density2d(color = "black") + 
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance") +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP2 vs. mRNA TP1")
+
+# TP3 vs TP2
+slide2 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP3,
+             x = mean_abundance_rna_total_TP2)) +
+  geom_density2d(color = "black") + 
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP3 vs. mRNA TP2")
+
+# TP4 vs TP3
+slide3 = abund %>% 
+  ggplot(aes(y = mean_abundance_protein_lysate_TP4,
+             x = mean_abundance_rna_total_TP3)) +
+  geom_density2d(color = "black") +  
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("Protein Abundance") +
+  xlab("mRNA Abundance")  +
+  scale_x_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  scale_y_log10(breaks = breaks,
+                minor_breaks = minor_breaks,
+                labels = function(x) format(x, scientific = F)) +
+  annotation_logticks() +
+  ggtitle("Protein TP4 vs. mRNA TP3")
+
+# arranging plots
+protvsmrnaslide = ggarrange(slide1, slide2, slide3,
+                            ncol = 3, nrow = 1)
+
+# "NB" plots####
+# setting correlation method to compare
+mt = "pearson"
+
+tmpdf = abund %>% 
+  dplyr::select(!starts_with("se")) %>% 
+  mutate(mean_ratio_translational_efficiency_TP1 = mean_abundance_protein_lysate_TP1 / mean_abundance_rna_total_TP1,
+         mean_ratio_translational_efficiency_TP2 = mean_abundance_protein_lysate_TP2 / mean_abundance_rna_total_TP2,
+         mean_ratio_translational_efficiency_TP3 = mean_abundance_protein_lysate_TP3 / mean_abundance_rna_total_TP3,
+         mean_ratio_translational_efficiency_TP4 = mean_abundance_protein_lysate_TP4 / mean_abundance_rna_total_TP4)
+
+tmpdflong = tmpdf %>% 
+  pivot_longer(cols = contains(c("abundance", "ratio")),
+               names_pattern = "^(.*)_.*_(.*_.*)_(.*)$",
+               names_to = c("measure", "libtype", "timepoint"),
+               values_to = "abundance") %>% 
+  pivot_wider(names_from = c("measure"),
+              values_from = "abundance")
+
+# protein abundance in function of mRNA
+protvsmrna = tmpdflong %>% 
+  filter(timepoint != "TP0") %>% 
+  pivot_wider(names_from = libtype,
+              values_from = mean) %>% 
+  ggplot(aes(y = log2(translational_efficiency) ,
+             x = log2(protein_lysate)/2 + log2(rna_total)/2)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  facet_wrap(~ timepoint) +
+  ylab("log2(Protein/mRNA)") +
+  xlab("log2(Protein)/2 + log2(mRNA)/2")
+  # ylab("Abundância de Proteínas") +
+  # xlab("Abundância de mRNAs") +
+
+# slide prot from TPi+1 mRNA from TPi
+# TP2 vs TP1
+slide1 = abund %>% 
+  ggplot(aes(y = log2(mean_abundance_protein_lysate_TP2/mean_abundance_rna_total_TP1),
+             x = log2(mean_abundance_protein_lysate_TP2)/2 + log2(mean_abundance_rna_total_TP1)/2)) +
+  geom_point(alpha = 0.25) +  
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("log2(Protein/mRNA)") +
+  xlab("log2(Protein)/2 + log2(mRNA)/2")  +
+  ggtitle("Protein TP2 vs. mRNA TP1")
+
+# TP3 vs TP2
+slide2 = abund %>% 
+  ggplot(aes(y = log2(mean_abundance_protein_lysate_TP3/mean_abundance_rna_total_TP2),
+             x = log2(mean_abundance_protein_lysate_TP3)/2 + log2(mean_abundance_rna_total_TP1)/2)) +
+  geom_point(alpha = 0.25) +  
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("log2(Protein/mRNA)") +
+  xlab("log2(Protein)/2 + log2(mRNA)/2")  +
+  ggtitle("Protein TP3 vs. mRNA TP2")
+
+# TP4 vs TP3
+slide3 = abund %>% 
+  ggplot(aes(y = log2(mean_abundance_protein_lysate_TP4/mean_abundance_rna_total_TP3),
+             x = log2(mean_abundance_protein_lysate_TP4)/2 + log2(mean_abundance_rna_total_TP3)/2)) +
+  geom_point(alpha = 0.25) +  
+  geom_smooth(method = "lm",
+              color = tab10$value[1]) +
+  stat_cor(method = mt) +
+  ylab("log2(Protein/mRNA)") +
+  xlab("log2(Protein)/2 + log2(mRNA)/2")  +
+  ggtitle("Protein TP4 vs. mRNA TP3")
+
+# arranging plots
+protvsmrnaslide = ggarrange(slide1, slide2, slide3,
+                            ncol = 3, nrow = 1)
+
+

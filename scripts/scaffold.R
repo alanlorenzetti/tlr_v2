@@ -4,6 +4,10 @@
 # here you can find the adequate
 # script order
 
+# creating a few directories necessary to store results and plots
+if(!dir.exists("plots")){dir.create("plots")}
+if(!dir.exists("results")){dir.create("results")}
+
 # loading libs
 source("scripts/loadingLibs.R")
 
@@ -46,7 +50,3 @@ source("scripts/analysisAndFiguresRequested20201009.R") # correlation plots
 source("scripts/findPutativeRegulatedTx.R")
 # source("scripts/norm_issues_tmp.R") # accessory and not essential
 # source("scripts/bepeReportFigures.R")
-
-# creating a few directories necessary to store results and plots
-if(!dir.exists("plots")){dir.create("plots")}
-if(!dir.exists("results")){dir.create("results")}

@@ -43,8 +43,9 @@ oneomics = oneomics %>%
 cthr = 0.75
 mlrthr = 0.2
 oneomics = oneomics %>% 
-  filter((c_TP2 >= cthr | c_TP3 >= cthr | c_TP4 >= cthr) &
-           (mlr_TP2 >= mlrthr | mlr_TP3 >= mlrthr | mlr_TP4 >= mlrthr))
+  filter((c_TP2 >= cthr & mlr_TP2 >= mlrthr) |
+           c_TP3 >= cthr & mlr_TP3 >= mlrthr |
+           c_TP4 >= cthr & mlr_TP4 >= mlrthr)
 
 # pivoting object
 oneomicsLong = oneomics %>% 
@@ -73,7 +74,7 @@ oneomicsWide = oneomicsWide[!(oneomicsWide$locus_tag %in% remove),] %>%
   dplyr::select(-subject_id, -product.y)
   
 # for retrocompatibility reasons
-# I will recreated the object names tpivstp1
+# I will recreate the object names tpivstp1
 # it is going to be similar
 # but not the same
 tpivstp1 = list()
@@ -92,10 +93,11 @@ for(i in paste0("TP", 2:4)){
 
 # exploratory charts ####
 # plotting densities
-# oneomicsLong %>%
-#   ggplot(aes(x=value, color = timepoint)) +
-#   geom_density() +
-#   facet_grid(~ type, scales = "free_x")
-# 
-# # plotting heatmap
-# Heatmap(oneomics %>% dplyr::select(contains("lfc")) %>% as.matrix())
+oneomicsLong %>%
+  filter(type == "lfc") %>% 
+  ggplot(aes(x=value, color = timepoint)) +
+  geom_density() +
+  xlab("log2(Fold Change)")
+
+# plotting heatmap
+Heatmap(oneomics %>% dplyr::select(contains("lfc")) %>% as.matrix())

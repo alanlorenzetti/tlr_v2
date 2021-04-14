@@ -593,3 +593,7 @@ ggsave(filename = "plots/tese/mobileElPanelFeatures.png",
        height = 6.6,
        dpi = 300)
 
+# saving hmaFuncat object
+# for posterior use
+write_tsv(x = hmaFuncat, 
+          file = "results/hmaFuncat.tsv")

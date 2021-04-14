@@ -55,7 +55,8 @@ packs = c("BiocManager",
           "svglite",
           "ggtext",
           "gtools",
-          "DT")
+          "DT",
+          "clipr")
 
 # loading and installing missing packages
 p_load(char = packs)
